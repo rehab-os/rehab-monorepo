@@ -2,5 +2,21 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
-  "references": []
+  "references": [
+    {
+      "path": "./apps/web/enterprise-console"
+    },
+    {
+      "path": "./apps/backend/core-api"
+    },
+    {
+      "path": "./libs/frontend/shared"
+    },
+    {
+      "path": "./libs/backend/database"
+    },
+    {
+      "path": "./libs/backend/common"
+    }
+  ]
 }
