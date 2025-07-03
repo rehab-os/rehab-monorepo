@@ -1,0 +1,68 @@
+@tailwind base;
+
+@custom-variant dark (&:is(.dark *));
+/* @tailwind components; */
+@tailwind utilities;
+@layer base {
+  :root {
+    /* Primary - Calming Teal */
+    --primary: 180 48% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Soft Green (healing/wellness) */
+    --secondary: 152 40% 86%;
+    --secondary-foreground: 152 45% 20%;
+
+    /* Accent - Warm Blue (trust/professional) */
+    --accent: 210 60% 90%;
+    --accent-foreground: 210 65% 25%;
+
+    /* Background colors */
+    --background: 0 0% 100%;
+    --foreground: 224 10% 10%;
+
+    /* Card backgrounds */
+    --card: 0 0% 100%;
+    --card-foreground: 224 10% 10%;
+
+    /* Functional colors */
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214 20% 91%;
+    --input: 214 20% 91%;
+    --ring: 180 48% 52%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 224 20% 10%;
+    --foreground: 210 20% 98%;
+
+    --primary: 180 48% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 152 30% 25%;
+    --secondary-foreground: 152 40% 86%;
+
+    --accent: 210 50% 25%;
+    --accent-foreground: 210 60% 90%;
+
+    --card: 224 20% 14%;
+    --card-foreground: 210 20% 98%;
+
+    --muted: 215 20% 18%;
+    --muted-foreground: 215 16% 57%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
+    --ring: 180 48% 52%;
+  }
+}

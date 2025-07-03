@@ -4,23 +4,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
-import { User, UserRole, Role, RolePermission, Permission } from '@rehab/database';
+import { User, UserClinicRole, Organization, Clinic } from '@rehab/database';
 import { LoginDto, SendOtpDto, LoginResponseDto } from '@rehab/common';
 
 // Define a type for the loaded relations
-type UserRoleWithFullRelations = UserRole & {
-    role: Role & {
-        rolePermissions: (RolePermission & {
-            permission: Permission;
-        })[];
-    };
-    organization?: {
-        id: string;
-        name: string;
-    };
-    clinic?: {
-        id: string;
-        name: string;
+type UserClinicRoleWithRelations = UserClinicRole & {
+    clinic: Clinic & {
+        organization: Organization;
     };
 };
 
@@ -31,8 +21,10 @@ export class AuthService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
-        @InjectRepository(UserRole)
-        private userRoleRepository: Repository<UserRole>,
+        @InjectRepository(UserClinicRole)
+        private userClinicRoleRepository: Repository<UserClinicRole>,
+        @InjectRepository(Organization)
+        private organizationRepository: Repository<Organization>,
         private jwtService: JwtService,
         private configService: ConfigService,
     ) {
@@ -77,8 +69,7 @@ export class AuthService {
 
         // Get or create user
         let user = await this.userRepository.findOne({
-            where: { phone },
-            relations: ['userRoles', 'userRoles.role', 'userRoles.role.rolePermissions', 'userRoles.role.rolePermissions.permission'],
+            where: { phone }
         });
 
         if (!user) {
@@ -93,8 +84,8 @@ export class AuthService {
             await this.userRepository.save(user);
         }
 
-        // Get user roles with permissions
-        const roles = await this.getUserRolesWithPermissions(user.id);
+        // Get user organization and clinic data
+        const userData = await this.getUserWithOrganizationData(user.id);
 
         const payload = {
             id: user.id,
@@ -110,29 +101,81 @@ export class AuthService {
         return {
             access_token,
             refresh_token,
-            user: {
-                id: user.id,
-                phone: user.phone,
-                full_name: user.full_name,
-                email: user.email,
-                roles,
-            },
+            user: userData,
         };
     }
 
-    private async getUserRolesWithPermissions(userId: string): Promise<any[]> {
-        const userRoles = await this.userRoleRepository.find({
-            where: { user_id: userId, is_active: true },
-            relations: ['role', 'role.rolePermissions', 'role.rolePermissions.permission', 'organization', 'clinic'],
-        }) as UserRoleWithFullRelations[];
+    async getUserWithOrganizationData(userId: string): Promise<any> {
+        // Get user basic info
+        const user = await this.userRepository.findOne({
+            where: { id: userId }
+        });
 
-        return userRoles.map((userRole: UserRoleWithFullRelations) => ({
-            role: userRole.role.name,
-            display_name: userRole.role.display_name,
-            organization_id: userRole.organization_id,
-            clinic_id: userRole.clinic_id,
-            permissions: userRole.role.rolePermissions?.map(rp => rp.permission.name) || [],
-        }));
+        if (!user) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        // Get user's clinic roles
+        const userClinicRoles = await this.userClinicRoleRepository.find({
+            where: { user_id: userId },
+            relations: ['clinic', 'clinic.organization']
+        }) as UserClinicRoleWithRelations[];
+
+        // Check if user owns any organization
+        const ownedOrganization = await this.organizationRepository.findOne({
+            where: { owner_user_id: userId },
+            relations: ['clinics']
+        });
+
+        if (ownedOrganization) {
+            // User is an organization owner
+            const clinics = userClinicRoles
+                .filter(ucr => ucr.clinic.organization.id === ownedOrganization.id)
+                .map(ucr => ({
+                    id: ucr.clinic.id,
+                    name: ucr.clinic.name,
+                    role: ucr.role,
+                    is_admin: ucr.is_admin
+                }));
+
+            return {
+                user_id: user.id,
+                name: user.full_name,
+                organization: {
+                    id: ownedOrganization.id,
+                    name: ownedOrganization.name,
+                    is_owner: true,
+                    clinics
+                }
+            };
+        } else if (userClinicRoles.length > 0) {
+            // User has clinic roles but doesn't own organization
+            const organization = userClinicRoles[0].clinic.organization;
+            const clinics = userClinicRoles.map(ucr => ({
+                id: ucr.clinic.id,
+                name: ucr.clinic.name,
+                role: ucr.role,
+                is_admin: ucr.is_admin
+            }));
+
+            return {
+                user_id: user.id,
+                name: user.full_name,
+                organization: {
+                    id: organization.id,
+                    name: organization.name,
+                    is_owner: false,
+                    clinics
+                }
+            };
+        } else {
+            // User has no organization/clinic association
+            return {
+                user_id: user.id,
+                name: user.full_name,
+                organization: null
+            };
+        }
     }
 
     async validateToken(token: string): Promise<any> {

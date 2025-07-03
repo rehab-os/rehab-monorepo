@@ -17,6 +17,24 @@
     },
     {
       "path": "./libs/backend/common"
+    },
+    {
+      "path": "./libs/frontend/clinic"
+    },
+    {
+      "path": "./libs/frontend/patient"
+    },
+    {
+      "path": "./apps/web/clinic"
+    },
+    {
+      "path": "./apps/web/patient"
+    },
+    {
+      "path": "./apps/mobile/patient"
+    },
+    {
+      "path": "./apps/mobile/clinic"
     }
   ]
 }

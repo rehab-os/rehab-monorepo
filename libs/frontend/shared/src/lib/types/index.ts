@@ -27,13 +27,12 @@ export interface LoginResponseDto {
 
 // Organization Types
 export enum OrganizationType {
-    ONLY_PHYSIO = 'CHAIN',
-    MULTI_SPECIALTY = 'SINGLE_CHAIN',
+    CHAIN = 'CHAIN',
+    SINGLE_CLINIC = 'SINGLE_CLINIC',
 }
 
 export interface CreateOrganizationDto {
     name: string
-    type: OrganizationType
     registration_no?: string
     gst_no?: string
     pan_no?: string
@@ -54,7 +53,7 @@ export interface OrganizationResponseDto {
     gst_no?: string
     pan_no?: string
     logo_url?: string
-    created_by: string
+    owner_user_id: string
     is_active: boolean
     created_at: Date
     updated_at: Date

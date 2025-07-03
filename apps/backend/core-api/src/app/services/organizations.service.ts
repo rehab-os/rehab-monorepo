@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Organization, User, UserRole, Role, OrganizationOwner } from '@rehab/database';
+import { Organization, User, UserClinicRole, OrganizationOwner } from '@rehab/database';
 import { CreateOrganizationDto, UpdateOrganizationDto, OrganizationResponseDto } from '@rehab/common';
 import { AuthService } from './auth.service';
 
@@ -12,10 +12,8 @@ export class OrganizationsService {
         private organizationRepository: Repository<Organization>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
-        @InjectRepository(UserRole)
-        private userRoleRepository: Repository<UserRole>,
-        @InjectRepository(Role)
-        private roleRepository: Repository<Role>,
+        @InjectRepository(UserClinicRole)
+        private userClinicRoleRepository: Repository<UserClinicRole>,
         @InjectRepository(OrganizationOwner)
         private organizationOwnerRepository: Repository<OrganizationOwner>,
         private authService: AuthService,
@@ -62,12 +60,12 @@ export class OrganizationsService {
             const organization = this.organizationRepository.create({
                 name: createOrganizationDto.name,
                 slug,
-                type: createOrganizationDto.type,
+                type: 'CHAIN', // Default type (using existing enum value)
                 registration_no: createOrganizationDto.registration_no,
                 gst_no: createOrganizationDto.gst_no,
                 pan_no: createOrganizationDto.pan_no,
                 bank_details: createOrganizationDto.bank_details,
-                created_by: creatorId,
+                owner_user_id: adminUser.id,
             });
 
             const savedOrg = await queryRunner.manager.save(organization);
@@ -84,19 +82,8 @@ export class OrganizationsService {
             });
             await queryRunner.manager.save(orgOwner);
 
-            // Assign org_owner role to admin
-            const orgOwnerRole = await this.roleRepository.findOne({ where: { name: 'org_owner' } });
-            if (!orgOwnerRole) {
-                throw new Error('org_owner role not found in system');
-            }
-
-            const userRole = this.userRoleRepository.create({
-                user_id: adminUser.id,
-                role_id: orgOwnerRole.id,
-                organization_id: savedOrg.id,
-                assigned_by: creatorId,
-            });
-            await queryRunner.manager.save(userRole);
+            // Note: Organization ownership is now handled by owner_user_id field
+            // No need to create separate role records for organization ownership
 
             await queryRunner.commitTransaction();
             return this.toResponseDto(savedOrg);
@@ -161,7 +148,7 @@ export class OrganizationsService {
             gst_no: organization.gst_no,
             pan_no: organization.pan_no,
             logo_url: organization.logo_url,
-            created_by: organization.created_by,
+            owner_user_id: organization.owner_user_id,
             is_active: organization.is_active,
             created_at: organization.created_at,
             updated_at: organization.updated_at,

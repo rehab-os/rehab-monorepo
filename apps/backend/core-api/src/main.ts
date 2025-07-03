@@ -9,9 +9,9 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api/v1');
 
-  // Enable CORS
+  // Enable CORS for all origins
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3100'],
+    origin: true,
     credentials: true,
   });
 

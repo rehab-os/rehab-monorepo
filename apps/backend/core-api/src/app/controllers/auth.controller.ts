@@ -84,6 +84,6 @@ export class AuthController {
         }
     })
     async getCurrentUser(@Request() req: AuthenticatedRequest) {
-        return req.user;
+        return this.authService.getUserWithOrganizationData(req.user.id);
     }
 }

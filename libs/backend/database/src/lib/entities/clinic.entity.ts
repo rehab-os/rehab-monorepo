@@ -84,4 +84,5 @@ export class Clinic {
     @ManyToOne(() => Organization, organization => organization.clinics)
     @JoinColumn({ name: 'organization_id' })
     organization?: Organization;
+
 }

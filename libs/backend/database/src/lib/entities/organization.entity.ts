@@ -48,7 +48,7 @@ export class Organization {
 
     @ApiProperty()
     @Column('uuid')
-    created_by!: string;
+    owner_user_id!: string;
 
     @ApiPropertyOptional()
     @Column({ type: 'jsonb', nullable: true })
@@ -67,8 +67,8 @@ export class Organization {
     updated_at!: Date;
 
     @ManyToOne(() => User)
-    @JoinColumn({ name: 'created_by' })
-    creator?: User;
+    @JoinColumn({ name: 'owner_user_id' })
+    owner?: User;
 
     @OneToMany(() => Clinic, (clinic: Clinic) => clinic.organization)
     clinics?: Clinic[];

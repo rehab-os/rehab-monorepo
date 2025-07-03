@@ -1,7 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToMany } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { RolePermission } from './role-permission.entity';
-import { UserRole } from './user-role.entity';
 
 @Entity('roles')
 export class Role {
@@ -32,6 +31,4 @@ export class Role {
     @OneToMany(() => RolePermission, (rolePermission: RolePermission) => rolePermission.role)
     rolePermissions?: RolePermission[];
 
-    @OneToMany(() => UserRole, (userRole: UserRole) => userRole.role)
-    userRoles?: UserRole[];
 }

@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsObject, IsPhoneNumber } from 'class-validator';
-import { OrganizationType } from '@rehab/database';
+import { IsString, IsNotEmpty, IsOptional, IsObject, IsPhoneNumber } from 'class-validator';
 
 export class CreateOrganizationDto {
     @ApiProperty({ example: 'HealthCare Chain' })
@@ -8,9 +7,6 @@ export class CreateOrganizationDto {
     @IsNotEmpty()
     name!: string;
 
-    @ApiProperty({ enum: OrganizationType })
-    @IsEnum(OrganizationType)
-    type!: OrganizationType;
 
     @ApiPropertyOptional()
     @IsString()
@@ -61,7 +57,7 @@ export class OrganizationResponseDto {
     slug!: string;
 
     @ApiProperty()
-    type!: OrganizationType;
+    type!: string;
 
     @ApiProperty()
     registration_no?: string;
@@ -76,7 +72,7 @@ export class OrganizationResponseDto {
     logo_url?: string;
 
     @ApiProperty()
-    created_by!: string;
+    owner_user_id!: string;
 
     @ApiProperty()
     is_active!: boolean;

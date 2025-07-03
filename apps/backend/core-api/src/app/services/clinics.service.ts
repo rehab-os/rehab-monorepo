@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
-import { Clinic, User, UserRole, Role, ClinicOwner } from '@rehab/database';
+import { Clinic, User, UserClinicRole, ClinicOwner, Role } from '@rehab/database';
 import { CreateClinicDto, UpdateClinicDto, ClinicResponseDto } from '@rehab/common';
 import { AuthService } from '../services/auth.service';
 
@@ -12,12 +12,12 @@ export class ClinicsService {
         private clinicRepository: Repository<Clinic>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
-        @InjectRepository(UserRole)
-        private userRoleRepository: Repository<UserRole>,
-        @InjectRepository(Role)
-        private roleRepository: Repository<Role>,
+        @InjectRepository(UserClinicRole)
+        private userClinicRoleRepository: Repository<UserClinicRole>,
         @InjectRepository(ClinicOwner)
         private clinicOwnerRepository: Repository<ClinicOwner>,
+        @InjectRepository(Role)
+        private roleRepository: Repository<Role>,
         private authService: AuthService,
         private dataSource: DataSource,
     ) { }
@@ -68,23 +68,14 @@ export class ClinicsService {
             });
             await queryRunner.manager.save(clinicOwner);
 
-            // Assign clinic_owner role
-            const clinicOwnerRole = await this.roleRepository.findOne({
-                where: { name: 'clinic_owner' },
-            });
-
-            if (!clinicOwnerRole) {
-                throw new Error('clinic_owner role not found in system');
-            }
-
-            const userRole = this.userRoleRepository.create({
+            // Create user clinic role with admin privileges
+            const userClinicRole = this.userClinicRoleRepository.create({
                 user_id: adminUser.id,
-                role_id: clinicOwnerRole.id,
-                organization_id: organizationId,
                 clinic_id: savedClinic.id,
-                assigned_by: creatorId,
+                role: 'physiotherapist', // Default role
+                is_admin: true, // Make them admin of this clinic
             });
-            await queryRunner.manager.save(userRole);
+            await queryRunner.manager.save(userClinicRole);
 
             await queryRunner.commitTransaction();
             return this.toResponseDto(savedClinic);

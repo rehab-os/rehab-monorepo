@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, UserRole, Role, UserStatus } from '@rehab/database';
+import { User, UserClinicRole, UserStatus } from '@rehab/database';
 import {
     CreateUserDto,
     UpdateUserDto,
@@ -20,10 +20,8 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
-        @InjectRepository(UserRole)
-        private userRoleRepository: Repository<UserRole>,
-        @InjectRepository(Role)
-        private roleRepository: Repository<Role>,
+        @InjectRepository(UserClinicRole)
+        private userClinicRoleRepository: Repository<UserClinicRole>,
         private configService: ConfigService,
     ) {
         this.supabase = createClient(
@@ -66,23 +64,7 @@ export class UsersService {
     }
 
     async findAll(query: UserListQueryDto): Promise<{ users: UserResponseDto[]; total: number }> {
-        const qb = this.userRepository.createQueryBuilder('user')
-            .leftJoinAndSelect('user.userRoles', 'userRole')
-            .leftJoinAndSelect('userRole.role', 'role')
-            .leftJoinAndSelect('userRole.organization', 'organization')
-            .leftJoinAndSelect('userRole.clinic', 'clinic');
-
-        if (query.organizationId) {
-            qb.andWhere('userRole.organization_id = :organizationId', { organizationId: query.organizationId });
-        }
-
-        if (query.clinicId) {
-            qb.andWhere('userRole.clinic_id = :clinicId', { clinicId: query.clinicId });
-        }
-
-        if (query.role) {
-            qb.andWhere('role.name = :roleName', { roleName: query.role });
-        }
+        const qb = this.userRepository.createQueryBuilder('user');
 
         if (query.status) {
             qb.andWhere('user.user_status = :status', { status: query.status });
@@ -97,23 +79,21 @@ export class UsersService {
         const [users, total] = await qb.getManyAndCount();
 
         return {
-            users: users.map(user => this.toResponseDto(user, true)),
+            users: users.map(user => this.toResponseDto(user, false)),
             total,
         };
     }
 
     async findOne(id: string): Promise<UserResponseDto> {
         const user = await this.userRepository.findOne({
-            where: { id },
-            relations: ['userRoles', 'userRoles.role', 'userRoles.organization', 'userRoles.clinic', 'userRoles.role.rolePermissions',
-                'userRoles.role.rolePermissions.permission',],
+            where: { id }
         });
 
         if (!user) {
             throw new NotFoundException('User not found');
         }
 
-        return this.toResponseDto(user, true);
+        return this.toResponseDto(user, false);
     }
 
     async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
@@ -183,80 +163,78 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        const role = await this.roleRepository.findOne({ where: { id: assignRoleDto.roleId } });
-        if (!role) {
-            throw new NotFoundException('Role not found');
-        }
-
-        // Check if user already has this role in the same context
-        const existingRole = await this.userRoleRepository.findOne({
+        // Check if user already has a role in this clinic
+        const existingRole = await this.userClinicRoleRepository.findOne({
             where: {
                 user_id: userId,
-                role_id: assignRoleDto.roleId,
-                organization_id: assignRoleDto.organizationId,
                 clinic_id: assignRoleDto.clinicId,
             },
         });
 
         if (existingRole) {
-            throw new ConflictException('User already has this role in the specified context');
+            throw new ConflictException('User already has a role in this clinic');
         }
 
-        // Create new user role
-        const userRole = this.userRoleRepository.create({
+        // Create new user clinic role
+        const userClinicRole = this.userClinicRoleRepository.create({
             user_id: userId,
-            role_id: assignRoleDto.roleId,
-            organization_id: assignRoleDto.organizationId,
             clinic_id: assignRoleDto.clinicId,
-            assigned_by: assignedBy,
+            role: assignRoleDto.role, // Should be 'physiotherapist' or 'receptionist'
+            is_admin: assignRoleDto.is_admin || false,
         });
 
-        await this.userRoleRepository.save(userRole);
+        await this.userClinicRoleRepository.save(userClinicRole);
         return this.findOne(userId);
     }
 
-    async removeRole(userId: string, roleId: string): Promise<void> {
-        const userRole = await this.userRoleRepository.findOne({
+    async removeRole(userId: string, clinicId: string): Promise<void> {
+        const userClinicRole = await this.userClinicRoleRepository.findOne({
             where: {
                 user_id: userId,
-                role_id: roleId,
+                clinic_id: clinicId,
             },
         });
 
-        if (!userRole) {
-            throw new NotFoundException('User role not found');
+        if (!userClinicRole) {
+            throw new NotFoundException('User clinic role not found');
         }
 
-        await this.userRoleRepository.remove(userRole);
+        await this.userClinicRoleRepository.remove(userClinicRole);
     }
 
     async getUserPermissions(
         userId: string,
-        organizationId?: string,
         clinicId?: string
     ): Promise<string[]> {
-        const query = this.userRoleRepository.createQueryBuilder('ur')
-            .innerJoinAndSelect('ur.role', 'role')
-            .innerJoinAndSelect('role.rolePermissions', 'rp')
-            .innerJoinAndSelect('rp.permission', 'permission')
-            .where('ur.user_id = :userId', { userId })
-            .andWhere('ur.is_active = true');
-
-        if (organizationId) {
-            query.andWhere('(ur.organization_id = :organizationId OR ur.organization_id IS NULL)', { organizationId });
-        }
-
-        if (clinicId) {
-            query.andWhere('(ur.clinic_id = :clinicId OR ur.clinic_id IS NULL)', { clinicId });
-        }
-
-        const userRoles = await query.getMany();
+        const userClinicRoles = await this.userClinicRoleRepository.find({
+            where: {
+                user_id: userId,
+                ...(clinicId && { clinic_id: clinicId })
+            }
+        });
 
         const permissions = new Set<string>();
-        userRoles.forEach(ur => {
-            ur.role.rolePermissions?.forEach(rp => {
-                permissions.add(rp.permission.name);
-            });
+        
+        userClinicRoles.forEach(ucr => {
+            // Basic permissions based on role
+            if (ucr.role === 'physiotherapist') {
+                permissions.add('view_patients');
+                permissions.add('create_treatments');
+                permissions.add('view_treatments');
+                permissions.add('update_treatments');
+            } else if (ucr.role === 'receptionist') {
+                permissions.add('view_patients');
+                permissions.add('create_appointments');
+                permissions.add('view_appointments');
+                permissions.add('update_appointments');
+            }
+            
+            // Admin permissions
+            if (ucr.is_admin) {
+                permissions.add('manage_clinic');
+                permissions.add('manage_users');
+                permissions.add('view_reports');
+            }
         });
 
         return Array.from(permissions);
@@ -291,32 +269,8 @@ export class UsersService {
             updated_at: user.updated_at,
         };
 
-        if (includeRoles && user.userRoles) {
-            dto.roles = user.userRoles.map(ur => ({
-                id: ur.id,
-                role: {
-                    id: ur.role.id,
-                    name: ur.role.name,
-                    display_name: ur.role.display_name,
-                    permissions: ur.role.rolePermissions?.map(rp => ({
-                        id: rp.permission.id,
-                        name: rp.permission.name,
-                        resource: rp.permission.resource,
-                        action: rp.permission.action,
-                        description: rp.permission.description,
-                    })) || [],
-                },
-                organization: ur.organization ? {
-                    id: ur.organization.id,
-                    name: ur.organization.name,
-                } : undefined,
-                clinic: ur.clinic ? {
-                    id: ur.clinic.id,
-                    name: ur.clinic.name,
-                } : undefined,
-                assigned_at: ur.assigned_at,
-            }));
-        }
+        // Note: Roles are now managed through UserClinicRole entity
+        // This can be extended later if needed
 
         return dto;
     }

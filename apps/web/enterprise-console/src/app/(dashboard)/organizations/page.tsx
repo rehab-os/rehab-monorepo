@@ -33,7 +33,6 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import ApiManager from '../../../services/data';
-import { OrganizationType } from '@rehab/shared';
 import { useForm } from '@mantine/form';
 import { formatDate, getInitials } from '@rehab/shared';
 import { motion } from 'framer-motion';
@@ -49,7 +48,6 @@ export default function OrganizationsPage() {
   const form = useForm({
     initialValues: {
       name: '',
-      type: OrganizationType.INDIVIDUAL_CLINIC,
       registration_no: '',
       gst_no: '',
       pan_no: '',
@@ -259,15 +257,6 @@ export default function OrganizationsPage() {
               placeholder="Enter organization name"
               required
               {...form.getInputProps('name')}
-            />
-            <Select
-              label="Organization Type"
-              data={Object.values(OrganizationType).map((type) => ({
-                value: type,
-                label: type.replace('_', ' '),
-              }))}
-              required
-              {...form.getInputProps('type')}
             />
             <Grid gutter="md">
               <Grid.Col span={6}>

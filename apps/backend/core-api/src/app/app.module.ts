@@ -22,6 +22,7 @@ import { RolesController } from './controllers/roles.controller';
 import { OrganizationsController } from './controllers/organizations.controller';
 import { ClinicsController } from './controllers/clinics.controller';
 import { UsersController } from './controllers/users.controller';
+import { TeamController } from './controllers/team.controller';
 // import { PatientsController } from './controllers/patients.controller';
 // import { AppointmentsController } from './controllers/appointments.controller';
 
@@ -32,6 +33,7 @@ import { RolesService } from './services/roles.service';
 import { OrganizationsService } from './services/organizations.service';
 import { ClinicsService } from './services/clinics.service';
 import { UsersService } from './services/users.service';
+import { TeamService } from './services/team.service';
 // import { PatientsService } from './services/patients.service';
 // import { AppointmentsService } from './services/appointments.service';
 
@@ -42,11 +44,16 @@ import {
   Role,
   Permission,
   RolePermission,
-  UserRole,
+  UserClinicRole,
   Organization,
   OrganizationOwner,
   Clinic,
   ClinicOwner,
+  PhysiotherapistProfile,
+  PhysiotherapistEducation,
+  PhysiotherapistTechnique,
+  PhysiotherapistWorkshop,
+  PhysiotherapistMachine,
   // Patient,
   // PatientClinicAccess,
   // Appointment,
@@ -82,11 +89,16 @@ import { JwtModule } from '@nestjs/jwt';
           Role,
           Permission,
           RolePermission,
-          UserRole,
+          UserClinicRole,
           Organization,
           OrganizationOwner,
           Clinic,
           ClinicOwner,
+          PhysiotherapistProfile,
+          PhysiotherapistEducation,
+          PhysiotherapistTechnique,
+          PhysiotherapistWorkshop,
+          PhysiotherapistMachine,
           // Patient,
           // PatientClinicAccess,
           // Appointment,
@@ -107,11 +119,16 @@ import { JwtModule } from '@nestjs/jwt';
       Role,
       Permission,
       RolePermission,
-      UserRole,
+      UserClinicRole,
       Organization,
       OrganizationOwner,
       Clinic,
       ClinicOwner,
+      PhysiotherapistProfile,
+      PhysiotherapistEducation,
+      PhysiotherapistTechnique,
+      PhysiotherapistWorkshop,
+      PhysiotherapistMachine,
       // Patient,
       // PatientClinicAccess,
       // Appointment,
@@ -138,6 +155,7 @@ import { JwtModule } from '@nestjs/jwt';
     OrganizationsController,
     ClinicsController,
     UsersController,
+    TeamController,
     // PatientsController,
     // AppointmentsController,
   ],
@@ -151,6 +169,7 @@ import { JwtModule } from '@nestjs/jwt';
     OrganizationsService,
     ClinicsService,
     UsersService,
+    TeamService,
     // PatientsService,
     // AppointmentsService,
 

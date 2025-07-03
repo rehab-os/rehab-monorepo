@@ -44,6 +44,12 @@ export const ENDPOINTS = {
     CREATE_PERMISSION: () => 'permissions',
     UPDATE_PERMISSION: (id: string) => `permissions/${id}`,
     DELETE_PERMISSION: (id: string) => `permissions/${id}`,
+
+    // Team Management
+    GET_TEAM_MEMBERS: () => 'team/members',
+    ADD_TEAM_MEMBER: () => 'team/members',
+    REMOVE_TEAM_MEMBER: (userId: string) => `team/members/${userId}`,
+    UPDATE_TEAM_MEMBER_ROLE: (userId: string) => `team/members/${userId}/role`,
 }
 
 // export default ENDPOINTS

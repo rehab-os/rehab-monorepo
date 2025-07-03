@@ -35,6 +35,10 @@ export const formatPhoneNumber = (phone: string): string => {
 }
 
 export const getInitials = (name: string): string => {
+    if (!name || typeof name !== 'string') {
+        return 'U';
+    }
+    
     return name
         .split(' ')
         .map(word => word[0])

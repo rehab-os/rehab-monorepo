@@ -1,7 +1,5 @@
-import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-// import { AuthUser } from './auth-user.entity.ts.old';
-import { UserRole } from './user-role.entity';
 
 export enum UserStatus {
     ACTIVE = 'ACTIVE',
@@ -30,7 +28,7 @@ export enum BloodGroup {
 @Entity('users')
 export class User {
     @ApiProperty()
-    @PrimaryColumn('uuid')
+    @PrimaryGeneratedColumn('uuid')
     id!: string;
 
     @ApiProperty()
@@ -89,6 +87,4 @@ export class User {
     // @JoinColumn({ name: 'id' })
     // authUser?: AuthUser;
 
-    @OneToMany(() => UserRole, (userRole: UserRole) => userRole.user)
-    userRoles?: UserRole[];
 }
