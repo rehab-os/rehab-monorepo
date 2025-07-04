@@ -13,6 +13,18 @@ import type {
     CreateClinicDto,
     UpdateClinicDto,
     AddTeamMemberDto,
+    CreatePatientDto,
+    UpdatePatientDto,
+    CreateVisitDto,
+    UpdateVisitDto,
+    CheckInVisitDto,
+    StartVisitDto,
+    CancelVisitDto,
+    RescheduleVisitDto,
+    PhysiotherapistAvailabilityDto,
+    CreateNoteDto,
+    UpdateNoteDto,
+    SignNoteDto,
 } from '@rehab/shared'
 
 const BASE_URL = 'http://localhost:3002/api/v1/'
@@ -123,6 +135,104 @@ class ApiManager {
         const url = BASE_URL + ENDPOINTS.UPDATE_TEAM_MEMBER_ROLE(userId)
         const headers = { 'x-organization-id': organizationId }
         return ApiMethods.patch(url, data, headers)
+    }
+
+    // Patients
+    static getPatients = (params?: any) => {
+        const url = BASE_URL + ENDPOINTS.GET_PATIENTS()
+        return ApiMethods.get(url, undefined, params)
+    }
+
+    static getPatient = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.GET_PATIENT(id)
+        return ApiMethods.get(url)
+    }
+
+    static createPatient = (data: CreatePatientDto) => {
+        const url = BASE_URL + ENDPOINTS.CREATE_PATIENT()
+        return ApiMethods.post(url, data)
+    }
+
+    static updatePatient = (id: string, data: UpdatePatientDto) => {
+        const url = BASE_URL + ENDPOINTS.UPDATE_PATIENT(id)
+        return ApiMethods.patch(url, data)
+    }
+
+    static deletePatient = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.DELETE_PATIENT(id)
+        return ApiMethods.delete(url)
+    }
+
+    // Visits
+    static getVisits = (params?: any) => {
+        const url = BASE_URL + ENDPOINTS.GET_VISITS()
+        return ApiMethods.get(url, undefined, params)
+    }
+
+    static getVisit = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.GET_VISIT(id)
+        return ApiMethods.get(url)
+    }
+
+    static createVisit = (data: CreateVisitDto) => {
+        const url = BASE_URL + ENDPOINTS.CREATE_VISIT()
+        return ApiMethods.post(url, data)
+    }
+
+    static updateVisit = (id: string, data: UpdateVisitDto) => {
+        const url = BASE_URL + ENDPOINTS.UPDATE_VISIT(id)
+        return ApiMethods.patch(url, data)
+    }
+
+    static checkInVisit = (id: string, data: CheckInVisitDto) => {
+        const url = BASE_URL + ENDPOINTS.CHECK_IN_VISIT(id)
+        return ApiMethods.post(url, data)
+    }
+
+    static startVisit = (id: string, data: StartVisitDto) => {
+        const url = BASE_URL + ENDPOINTS.START_VISIT(id)
+        return ApiMethods.post(url, data)
+    }
+
+    static completeVisit = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.COMPLETE_VISIT(id)
+        return ApiMethods.post(url, {})
+    }
+
+    static cancelVisit = (id: string, data: CancelVisitDto) => {
+        const url = BASE_URL + ENDPOINTS.CANCEL_VISIT(id)
+        return ApiMethods.post(url, data)
+    }
+
+    static rescheduleVisit = (id: string, data: RescheduleVisitDto) => {
+        const url = BASE_URL + ENDPOINTS.RESCHEDULE_VISIT(id)
+        return ApiMethods.put(url, data)
+    }
+
+    static getAvailablePhysiotherapists = (data: PhysiotherapistAvailabilityDto) => {
+        const url = BASE_URL + ENDPOINTS.GET_AVAILABLE_PHYSIOTHERAPISTS()
+        return ApiMethods.post(url, data)
+    }
+
+    // Notes
+    static createNote = (data: CreateNoteDto) => {
+        const url = BASE_URL + ENDPOINTS.CREATE_NOTE()
+        return ApiMethods.post(url, data)
+    }
+
+    static getNote = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.GET_NOTE(id)
+        return ApiMethods.get(url)
+    }
+
+    static updateNote = (id: string, data: UpdateNoteDto) => {
+        const url = BASE_URL + ENDPOINTS.UPDATE_NOTE(id)
+        return ApiMethods.patch(url, data)
+    }
+
+    static signNote = (id: string, data: SignNoteDto) => {
+        const url = BASE_URL + ENDPOINTS.SIGN_NOTE(id)
+        return ApiMethods.post(url, data)
     }
 }
 

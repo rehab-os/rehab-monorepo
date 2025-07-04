@@ -9,6 +9,9 @@ export * from './lib/dto/permission.dto';
 export * from './lib/dto/role.dto';
 export * from './lib/dto/users.dto';
 export * from './lib/dto/team.dto';
+export * from './lib/dto/patient.dto';
+export * from './lib/dto/visit.dto';
+export * from './lib/dto/note.dto';
 
 
 export * from './lib/decorators/permission.decorator';

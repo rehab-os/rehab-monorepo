@@ -238,4 +238,183 @@ export interface PermissionResponseDto {
     name: string
     description?: string
     created_at: Date
-  }
+}
+
+// Patient Types
+export enum PatientStatus {
+    ACTIVE = 'ACTIVE',
+    INACTIVE = 'INACTIVE',
+    DISCHARGED = 'DISCHARGED'
+}
+
+export interface CreatePatientDto {
+    full_name: string
+    phone: string
+    email?: string
+    date_of_birth: string
+    gender: string
+    address?: string
+    emergency_contact_name?: string
+    emergency_contact_phone?: string
+    medical_history?: string
+    allergies?: string[]
+    current_medications?: string[]
+    referred_by?: string
+    insurance_provider?: string
+    insurance_policy_number?: string
+    clinic_id: string
+}
+
+export interface UpdatePatientDto extends Partial<CreatePatientDto> {
+    status?: PatientStatus
+}
+
+export interface PatientResponseDto {
+    id: string
+    clinic_id: string
+    patient_code: string
+    full_name: string
+    phone: string
+    email?: string
+    date_of_birth: Date
+    gender: string
+    address?: string
+    emergency_contact_name?: string
+    emergency_contact_phone?: string
+    medical_history?: string
+    allergies?: string[]
+    current_medications?: string[]
+    status: PatientStatus
+    referred_by?: string
+    insurance_provider?: string
+    insurance_policy_number?: string
+    created_by: string
+    created_at: Date
+    updated_at: Date
+}
+
+// Visit Types
+export enum VisitStatus {
+    SCHEDULED = 'SCHEDULED',
+    IN_PROGRESS = 'IN_PROGRESS',
+    COMPLETED = 'COMPLETED',
+    CANCELLED = 'CANCELLED',
+    NO_SHOW = 'NO_SHOW'
+}
+
+export enum VisitType {
+    INITIAL_CONSULTATION = 'INITIAL_CONSULTATION',
+    FOLLOW_UP = 'FOLLOW_UP',
+    REVIEW = 'REVIEW',
+    EMERGENCY = 'EMERGENCY'
+}
+
+export interface CreateVisitDto {
+    patient_id: string
+    clinic_id: string
+    physiotherapist_id: string
+    visit_type: VisitType
+    scheduled_date: string
+    scheduled_time: string
+    duration_minutes?: number
+    chief_complaint?: string
+    parent_visit_id?: string
+}
+
+export interface UpdateVisitDto extends Partial<CreateVisitDto> {
+    status?: VisitStatus
+    vital_signs?: any
+}
+
+export interface CheckInVisitDto {
+    vital_signs?: any
+}
+
+export interface StartVisitDto {
+    vital_signs?: any
+}
+
+export interface CancelVisitDto {
+    cancellation_reason: string
+}
+
+export interface RescheduleVisitDto {
+    scheduled_date: string
+    scheduled_time: string
+    duration_minutes?: number
+}
+
+export interface PhysiotherapistAvailabilityDto {
+    clinic_id: string
+    date: string
+    time: string
+    duration_minutes?: number
+}
+
+export interface VisitResponseDto {
+    id: string
+    patient_id: string
+    clinic_id: string
+    physiotherapist_id: string
+    visit_type: VisitType
+    scheduled_date: Date
+    scheduled_time: string
+    duration_minutes: number
+    status: VisitStatus
+    chief_complaint?: string
+    check_in_time?: Date
+    start_time?: Date
+    end_time?: Date
+    cancellation_reason?: string
+    cancelled_by?: string
+    cancelled_at?: Date
+    parent_visit_id?: string
+    vital_signs?: any
+    created_by: string
+    created_at: Date
+    updated_at: Date
+}
+
+// Note Types
+export enum NoteType {
+    SOAP = 'SOAP',
+    DAP = 'DAP',
+    PROGRESS = 'PROGRESS'
+}
+
+export interface CreateNoteDto {
+    visit_id: string
+    note_type: NoteType
+    note_data: any
+    additional_notes?: string
+    treatment_codes?: string[]
+    treatment_details?: any
+    goals?: any
+    outcome_measures?: Record<string, any>
+    attachments?: string[]
+}
+
+export interface UpdateNoteDto extends Partial<CreateNoteDto> {}
+
+export interface SignNoteDto {
+    is_signed: boolean
+}
+
+export interface NoteResponseDto {
+    id: string
+    visit_id: string
+    note_type: NoteType
+    note_data: any
+    additional_notes?: string
+    treatment_codes?: string[]
+    treatment_details?: any
+    goals?: any
+    outcome_measures?: Record<string, any>
+    attachments?: string[]
+    is_signed: boolean
+    signed_by?: string
+    signed_at?: Date
+    created_by: string
+    created_at: Date
+    updated_at: Date
+}

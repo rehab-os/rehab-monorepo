@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useAppDispatch } from '../../store/hooks';
-import { getTokenCookie } from '@rehab/shared';
+import { getCookieValue } from '@rehab/shared';
 import ApiManager from '../../services/api';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -10,7 +10,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = getTokenCookie('access_token');
+      const token = getCookieValue('access_token');
       
       if (token) {
         try {

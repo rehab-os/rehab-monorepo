@@ -23,7 +23,7 @@ import { OrganizationsController } from './controllers/organizations.controller'
 import { ClinicsController } from './controllers/clinics.controller';
 import { UsersController } from './controllers/users.controller';
 import { TeamController } from './controllers/team.controller';
-// import { PatientsController } from './controllers/patients.controller';
+import { PatientsController } from './controllers/patients.controller';
 // import { AppointmentsController } from './controllers/appointments.controller';
 
 // All your services
@@ -34,7 +34,7 @@ import { OrganizationsService } from './services/organizations.service';
 import { ClinicsService } from './services/clinics.service';
 import { UsersService } from './services/users.service';
 import { TeamService } from './services/team.service';
-// import { PatientsService } from './services/patients.service';
+import { PatientsService } from './services/patients.service';
 // import { AppointmentsService } from './services/appointments.service';
 
 // Import all entities from database library
@@ -54,7 +54,9 @@ import {
   PhysiotherapistTechnique,
   PhysiotherapistWorkshop,
   PhysiotherapistMachine,
-  // Patient,
+  Patient,
+  Visit,
+  Note,
   // PatientClinicAccess,
   // Appointment,
   // PractitionerProfile,
@@ -99,7 +101,9 @@ import { JwtModule } from '@nestjs/jwt';
           PhysiotherapistTechnique,
           PhysiotherapistWorkshop,
           PhysiotherapistMachine,
-          // Patient,
+          Patient,
+          Visit,
+          Note,
           // PatientClinicAccess,
           // Appointment,
           // PractitionerProfile,
@@ -129,7 +133,9 @@ import { JwtModule } from '@nestjs/jwt';
       PhysiotherapistTechnique,
       PhysiotherapistWorkshop,
       PhysiotherapistMachine,
-      // Patient,
+      Patient,
+      Visit,
+      Note,
       // PatientClinicAccess,
       // Appointment,
       // PractitionerProfile,
@@ -156,7 +162,7 @@ import { JwtModule } from '@nestjs/jwt';
     ClinicsController,
     UsersController,
     TeamController,
-    // PatientsController,
+    PatientsController,
     // AppointmentsController,
   ],
 
@@ -170,7 +176,7 @@ import { JwtModule } from '@nestjs/jwt';
     ClinicsService,
     UsersService,
     TeamService,
-    // PatientsService,
+    PatientsService,
     // AppointmentsService,
 
     // ========== DEPENDENCY INJECTION ==========

@@ -21,6 +21,11 @@ export * from './lib/entities/physiotherapist-technique.entity'
 export * from './lib/entities/physiotherapist-workshop.entity'
 export * from './lib/entities/physiotherapist-machine.entity'
 
+// Patient Management Entities
+export * from './lib/entities/patient.entity'
+export * from './lib/entities/visit.entity'
+export * from './lib/entities/note.entity'
+
 
 
 

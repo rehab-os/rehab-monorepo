@@ -50,6 +50,31 @@ export const ENDPOINTS = {
     ADD_TEAM_MEMBER: () => 'team/members',
     REMOVE_TEAM_MEMBER: (userId: string) => `team/members/${userId}`,
     UPDATE_TEAM_MEMBER_ROLE: (userId: string) => `team/members/${userId}/role`,
+
+    // Patients
+    GET_PATIENTS: () => 'patients',
+    GET_PATIENT: (id: string) => `patients/${id}`,
+    CREATE_PATIENT: () => 'patients',
+    UPDATE_PATIENT: (id: string) => `patients/${id}`,
+    DELETE_PATIENT: (id: string) => `patients/${id}`,
+
+    // Visits
+    GET_VISITS: () => 'patients/visits',
+    GET_VISIT: (id: string) => `patients/visits/${id}`,
+    CREATE_VISIT: () => 'patients/visits',
+    UPDATE_VISIT: (id: string) => `patients/visits/${id}`,
+    CHECK_IN_VISIT: (id: string) => `patients/visits/${id}/check-in`,
+    START_VISIT: (id: string) => `patients/visits/${id}/start`,
+    COMPLETE_VISIT: (id: string) => `patients/visits/${id}/complete`,
+    CANCEL_VISIT: (id: string) => `patients/visits/${id}/cancel`,
+    RESCHEDULE_VISIT: (id: string) => `patients/visits/${id}/reschedule`,
+    GET_AVAILABLE_PHYSIOTHERAPISTS: () => 'patients/physiotherapists/availability',
+
+    // Notes
+    CREATE_NOTE: () => 'patients/notes',
+    GET_NOTE: (id: string) => `patients/notes/${id}`,
+    UPDATE_NOTE: (id: string) => `patients/notes/${id}`,
+    SIGN_NOTE: (id: string) => `patients/notes/${id}/sign`,
 }
 
 // export default ENDPOINTS
