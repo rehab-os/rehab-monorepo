@@ -2,7 +2,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { colors } from '@rehab/shared/theme';
+import { colors } from '../../theme';
 
 interface GradientBackgroundProps {
   children: React.ReactNode;

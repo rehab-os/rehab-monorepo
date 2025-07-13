@@ -57,6 +57,8 @@ export const ENDPOINTS = {
     CREATE_PATIENT: () => 'patients',
     UPDATE_PATIENT: (id: string) => `patients/${id}`,
     DELETE_PATIENT: (id: string) => `patients/${id}`,
+    GET_PATIENT_VISITS: (id: string) => `patients/${id}/visits`,
+    GET_PATIENT_VISIT_HISTORY: (id: string) => `patients/${id}/visit-history`,
 
     // Visits
     GET_VISITS: () => 'patients/visits',
@@ -75,6 +77,20 @@ export const ENDPOINTS = {
     GET_NOTE: (id: string) => `patients/notes/${id}`,
     UPDATE_NOTE: (id: string) => `patients/notes/${id}`,
     SIGN_NOTE: (id: string) => `patients/notes/${id}/sign`,
+
+    // Physiotherapist Profile
+    GET_PHYSIOTHERAPIST_PROFILE: () => 'physiotherapist-profile',
+    CREATE_PHYSIOTHERAPIST_PROFILE: () => 'physiotherapist-profile',
+    UPDATE_PHYSIOTHERAPIST_PROFILE: () => 'physiotherapist-profile',
+    CREATE_COMPLETE_PROFILE: () => 'physiotherapist-profile/complete',
+    ADD_EDUCATION: () => 'physiotherapist-profile/education',
+    ADD_TECHNIQUE: () => 'physiotherapist-profile/technique',
+    ADD_MACHINE: () => 'physiotherapist-profile/machine',
+    ADD_WORKSHOP: () => 'physiotherapist-profile/workshop',
+    DELETE_EDUCATION: (id: string) => `physiotherapist-profile/education/${id}`,
+    DELETE_TECHNIQUE: (id: string) => `physiotherapist-profile/technique/${id}`,
+    DELETE_MACHINE: (id: string) => `physiotherapist-profile/machine/${id}`,
+    DELETE_WORKSHOP: (id: string) => `physiotherapist-profile/workshop/${id}`,
 }
 
 // export default ENDPOINTS

@@ -148,6 +148,16 @@ class ApiManager {
         return ApiMethods.get(url)
     }
 
+    static getPatientVisits = (id: string, params?: any) => {
+        const url = BASE_URL + ENDPOINTS.GET_PATIENT_VISITS(id)
+        return ApiMethods.get(url, undefined, params)
+    }
+
+    static getPatientVisitHistory = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.GET_PATIENT_VISIT_HISTORY(id)
+        return ApiMethods.get(url)
+    }
+
     static createPatient = (data: CreatePatientDto) => {
         const url = BASE_URL + ENDPOINTS.CREATE_PATIENT()
         return ApiMethods.post(url, data)
@@ -233,6 +243,67 @@ class ApiManager {
     static signNote = (id: string, data: SignNoteDto) => {
         const url = BASE_URL + ENDPOINTS.SIGN_NOTE(id)
         return ApiMethods.post(url, data)
+    }
+
+    // Physiotherapist Profile
+    static getPhysiotherapistProfile = () => {
+        const url = BASE_URL + ENDPOINTS.GET_PHYSIOTHERAPIST_PROFILE()
+        return ApiMethods.get(url)
+    }
+
+    static createPhysiotherapistProfile = (data: any) => {
+        const url = BASE_URL + ENDPOINTS.CREATE_PHYSIOTHERAPIST_PROFILE()
+        return ApiMethods.post(url, data)
+    }
+
+    static updatePhysiotherapistProfile = (data: any) => {
+        const url = BASE_URL + ENDPOINTS.UPDATE_PHYSIOTHERAPIST_PROFILE()
+        return ApiMethods.put(url, data)
+    }
+
+    static createCompleteProfile = (data: any) => {
+        const url = BASE_URL + ENDPOINTS.CREATE_COMPLETE_PROFILE()
+        return ApiMethods.post(url, data)
+    }
+
+    static addEducation = (data: any) => {
+        const url = BASE_URL + ENDPOINTS.ADD_EDUCATION()
+        return ApiMethods.post(url, data)
+    }
+
+    static addTechnique = (data: any) => {
+        const url = BASE_URL + ENDPOINTS.ADD_TECHNIQUE()
+        return ApiMethods.post(url, data)
+    }
+
+    static addMachine = (data: any) => {
+        const url = BASE_URL + ENDPOINTS.ADD_MACHINE()
+        return ApiMethods.post(url, data)
+    }
+
+    static addWorkshop = (data: any) => {
+        const url = BASE_URL + ENDPOINTS.ADD_WORKSHOP()
+        return ApiMethods.post(url, data)
+    }
+
+    static deleteEducation = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.DELETE_EDUCATION(id)
+        return ApiMethods.delete(url)
+    }
+
+    static deleteTechnique = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.DELETE_TECHNIQUE(id)
+        return ApiMethods.delete(url)
+    }
+
+    static deleteMachine = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.DELETE_MACHINE(id)
+        return ApiMethods.delete(url)
+    }
+
+    static deleteWorkshop = (id: string) => {
+        const url = BASE_URL + ENDPOINTS.DELETE_WORKSHOP(id)
+        return ApiMethods.delete(url)
     }
 }
 

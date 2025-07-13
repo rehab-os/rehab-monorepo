@@ -1,391 +1,466 @@
-// apps/mobile/src/screens/auth/LoginScreen.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import {
+  TextInput,
+  Button,
+  Text,
+  Surface,
+  HelperText,
+} from 'react-native-paper';
 import Animated, {
-  useSharedValue,
+  FadeInDown,
+  FadeInUp,
+  FadeIn,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
   interpolate,
   Extrapolate,
-  FadeIn,
-  FadeInDown,
-  runOnJS,
+  withRepeat,
+  withSequence,
 } from 'react-native-reanimated';
-import LottieView from 'lottie-react-native';
-import {
-  Button,
-  TextInput,
-  HelperText,
-  ActivityIndicator,
-} from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
-import { AppDispatch, RootState } from '@rehab/shared';
-import { sendOtp, clearError } from '@rehab/shared/store/slices/authSlice';
-import { colors, typography } from '@rehab/shared/theme';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { setLoading } from '../../store/slices/authSlice';
+import { ApiManager } from '../../services/api';
 import { validatePhoneNumber } from '../../utils/validators';
-import GradientBackground from '../../components/ui/GradientBackground';
-import AnimatedCard from '../../components/ui/AnimatedCard';
+import HapticFeedback from '../../utils/haptics';
+import { showMessage } from 'react-native-flash-message';
 
 const { width, height } = Dimensions.get('window');
 
-export const LoginScreen: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigation = useNavigation();
-  const { loading, error, otpSent, phoneNumber } = useSelector(
-    (state: RootState) => state.auth
-  );
-
+export const LoginScreen = () => {
+  const navigation = useNavigation<any>();
+  const dispatch = useAppDispatch();
+  const { loading } = useAppSelector((state) => state.auth);
+  
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
-  const phoneInputRef = useRef<any>(null);
-
-  // Animation values
-  const logoScale = useSharedValue(0);
-  const formTranslateY = useSharedValue(50);
-  const formOpacity = useSharedValue(0);
+  const [countryCode] = useState('+91');
+  
+  const buttonScale = useSharedValue(1);
+  const logoRotation = useSharedValue(0);
+  const backgroundAnimation = useSharedValue(0);
 
   useEffect(() => {
-    // Entry animations
-    logoScale.value = withSpring(1, { damping: 15 });
-    formTranslateY.value = withTiming(0, { duration: 800 });
-    formOpacity.value = withTiming(1, { duration: 1000 });
+    // Subtle logo animation
+    logoRotation.value = withRepeat(
+      withSequence(
+        withTiming(5, { duration: 2000 }),
+        withTiming(-5, { duration: 2000 }),
+        withTiming(0, { duration: 2000 })
+      ),
+      -1,
+      true
+    );
 
-    // Clear error on unmount
-    return () => {
-      dispatch(clearError());
-    };
+    // Background gradient animation
+    backgroundAnimation.value = withRepeat(
+      withTiming(1, { duration: 10000 }),
+      -1,
+      true
+    );
   }, []);
 
-  useEffect(() => {
-    if (otpSent && phoneNumber) {
-      navigation.navigate('OTPVerification', { phone: phoneNumber });
+  const validatePhone = () => {
+    if (!phone) {
+      setPhoneError('Phone number is required');
+      return false;
     }
-  }, [otpSent, phoneNumber]);
+    if (!validatePhoneNumber(phone)) {
+      setPhoneError('Please enter a valid 10-digit phone number');
+      return false;
+    }
+    setPhoneError('');
+    return true;
+  };
 
-  const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
-  }));
-
-  const formAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: formTranslateY.value }],
-    opacity: formOpacity.value,
-  }));
-
-  const handleSendOTP = async () => {
-    const validation = validatePhoneNumber(phone);
-    if (!validation.isValid) {
-      setPhoneError(validation.error || 'Invalid phone number');
+  const handleSendOtp = async () => {
+    if (!validatePhone()) {
+      HapticFeedback.trigger('notificationError');
       return;
     }
 
-    setPhoneError('');
-
-    // Format phone number with country code if not present
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-
-    dispatch(sendOtp({ phone: formattedPhone }));
+    HapticFeedback.trigger('impactLight');
+    dispatch(setLoading(true));
+    
+    try {
+      const response = await ApiManager.sendOtp({ 
+        phone: `${countryCode}${phone}` 
+      });
+      
+      if (response.success) {
+        showMessage({
+          message: 'OTP Sent Successfully',
+          description: 'Please check your phone for the verification code',
+          type: 'success',
+          icon: 'success',
+          duration: 3000,
+        });
+        navigation.navigate('OTPVerification', { 
+          phoneNumber: `${countryCode}${phone}` 
+        });
+      } else {
+        showMessage({
+          message: 'Failed to send OTP',
+          description: response.message || 'Please try again',
+          type: 'danger',
+          icon: 'danger',
+        });
+      }
+    } catch (error: any) {
+      showMessage({
+        message: 'Error',
+        description: error.message || 'Something went wrong',
+        type: 'danger',
+        icon: 'danger',
+      });
+    } finally {
+      dispatch(setLoading(false));
+    }
   };
 
-  const handlePhoneChange = (text: string) => {
-    // Allow only numbers and + at the beginning
-    const cleaned = text.replace(/[^\d+]/g, '');
-    if (cleaned.startsWith('+') || cleaned === '') {
-      setPhone(cleaned);
-    } else {
-      setPhone(cleaned.replace(/^\+/, ''));
-    }
+  const animatedButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: buttonScale.value }],
+    };
+  });
 
-    if (phoneError) {
-      setPhoneError('');
-    }
-  };
+  const animatedLogoStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${logoRotation.value}deg` }],
+    };
+  });
+
+  const animatedBackgroundStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(
+      backgroundAnimation.value,
+      [0, 1],
+      [0, -50],
+      Extrapolate.CLAMP
+    );
+    return {
+      transform: [{ translateY }],
+    };
+  });
 
   return (
-    <GradientBackground>
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
+    <View style={styles.container}>
+      {/* Animated Background */}
+      <Animated.View style={[styles.backgroundContainer, animatedBackgroundStyle]}>
+        <LinearGradient
+          colors={['#F0FDF4', '#DCFCE7', '#BBF7D0', '#86EFAC']}
+          style={styles.gradientBackground}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        <View style={styles.patternOverlay}>
+          {[...Array(20)].map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.circlePattern,
+                {
+                  left: `${(i % 4) * 25}%`,
+                  top: `${Math.floor(i / 4) * 20}%`,
+                  opacity: 0.1,
+                },
+              ]}
+            />
+          ))}
+        </View>
+      </Animated.View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Logo and Title */}
-            <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-              <View style={styles.logoWrapper}>
-                <Icon
-                  name="medical-bag"
-                  size={60}
-                  color={colors.primary[500]}
-                />
-              </View>
-              <Text style={styles.title}>RehabOS</Text>
-              <Text style={styles.subtitle}>
-                Your Complete Clinic Management Solution
+          <View style={styles.content}>
+            {/* Logo Section */}
+            <Animated.View 
+              entering={FadeInDown.delay(100).springify()} 
+              style={styles.logoSection}
+            >
+              <Animated.View style={[styles.logoContainer, animatedLogoStyle]}>
+                <Surface style={styles.logoSurface} elevation={4}>
+                  <Icon name="medical-bag" size={48} color="#16A34A" />
+                </Surface>
+              </Animated.View>
+              <Text variant="displaySmall" style={styles.brandName}>
+                RehabOS
+              </Text>
+              <Text variant="bodyLarge" style={styles.tagline}>
+                The Operating System for Modern Rehabilitation
               </Text>
             </Animated.View>
 
-            {/* Login Form */}
-            <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
-              <AnimatedCard delay={300}>
-                <View style={styles.formHeader}>
-                  <Icon name="lock" size={24} color={colors.primary[600]} />
-                  <Text style={styles.formTitle}>Secure Login</Text>
-                </View>
-
-                <Text style={styles.formDescription}>
-                  Enter your registered phone number to receive a one-time
-                  password
+            {/* Form Section */}
+            <Animated.View 
+              entering={FadeInUp.delay(300).springify()} 
+              style={styles.formSection}
+            >
+              <Surface style={styles.formCard} elevation={2}>
+                <Text variant="headlineMedium" style={styles.welcomeText}>
+                  Welcome Back
+                </Text>
+                <Text variant="bodyMedium" style={styles.subtitleText}>
+                  Enter your phone number to continue
                 </Text>
 
                 <View style={styles.inputContainer}>
-                  <TextInput
-                    ref={phoneInputRef}
-                    mode="outlined"
-                    label="Phone Number"
-                    value={phone}
-                    onChangeText={handlePhoneChange}
-                    placeholder="+91 98765 43210"
-                    keyboardType="phone-pad"
-                    maxLength={15}
-                    error={!!phoneError || !!error}
-                    outlineColor={colors.neutral[300]}
-                    activeOutlineColor={colors.primary[500]}
-                    theme={{
-                      colors: {
-                        primary: colors.primary[500],
-                        error: colors.error,
-                      },
-                      roundness: 12,
-                    }}
-                    left={
-                      <TextInput.Icon
-                        icon="phone"
-                        color={
-                          phoneError || error
-                            ? colors.error
-                            : colors.primary[500]
-                        }
-                      />
-                    }
-                    style={styles.input}
-                  />
-
-                  {(phoneError || error) && (
-                    <HelperText
-                      type="error"
-                      visible={true}
-                      style={styles.errorText}
-                    >
-                      {phoneError || error}
+                  <View style={styles.phoneInputWrapper}>
+                    <Surface style={styles.countryCodeContainer} elevation={1}>
+                      <Text style={styles.countryCode}>{countryCode}</Text>
+                    </Surface>
+                    <TextInput
+                      label="Phone Number"
+                      value={phone}
+                      onChangeText={(text) => {
+                        setPhone(text.replace(/[^0-9]/g, ''));
+                        if (phoneError) setPhoneError('');
+                      }}
+                      keyboardType="number-pad"
+                      maxLength={10}
+                      mode="outlined"
+                      error={!!phoneError}
+                      disabled={loading}
+                      style={styles.phoneInput}
+                      outlineColor="#E5E7EB"
+                      activeOutlineColor="#16A34A"
+                      textColor="#374151"
+                      theme={{
+                        colors: {
+                          primary: '#16A34A',
+                          error: '#F43F5E',
+                        },
+                        roundness: 10,
+                      }}
+                    />
+                  </View>
+                  {phoneError ? (
+                    <HelperText type="error" visible={!!phoneError} style={styles.errorText}>
+                      {phoneError}
+                    </HelperText>
+                  ) : (
+                    <HelperText type="info" visible style={styles.helperText}>
+                      We'll send you a verification code
                     </HelperText>
                   )}
                 </View>
 
-                <Button
-                  mode="contained"
-                  onPress={handleSendOTP}
-                  loading={loading}
-                  disabled={loading || !phone}
-                  style={styles.button}
-                  contentStyle={styles.buttonContent}
-                  labelStyle={styles.buttonLabel}
-                  theme={{
-                    colors: { primary: colors.primary[500] },
-                    roundness: 12,
-                  }}
-                >
-                  {loading ? 'Sending OTP...' : 'Send OTP'}
-                </Button>
+                <Animated.View style={[styles.buttonWrapper, animatedButtonStyle]}>
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPressIn={() => {
+                      buttonScale.value = withSpring(0.96);
+                    }}
+                    onPressOut={() => {
+                      buttonScale.value = withSpring(1);
+                    }}
+                    style={styles.touchableButton}
+                  >
+                    <Button
+                      mode="contained"
+                      onPress={handleSendOtp}
+                      loading={loading}
+                      disabled={loading}
+                      style={styles.button}
+                      contentStyle={styles.buttonContent}
+                      labelStyle={styles.buttonLabel}
+                      buttonColor="#16A34A"
+                      textColor="#FFFFFF"
+                    >
+                      {loading ? 'Sending...' : 'Get Started'}
+                    </Button>
+                  </TouchableOpacity>
+                </Animated.View>
 
-                <View style={styles.infoContainer}>
-                  <Icon
-                    name="shield-check"
-                    size={16}
-                    color={colors.primary[400]}
-                  />
-                  <Text style={styles.infoText}>
-                    Your data is encrypted and secure
+                <View style={styles.infoSection}>
+                  <Icon name="shield-check" size={16} color="#16A34A" />
+                  <Text variant="bodySmall" style={styles.infoText}>
+                    Your data is secure and encrypted
                   </Text>
                 </View>
-              </AnimatedCard>
-
-              {/* Help Section */}
-              <AnimatedCard delay={600}>
-                <TouchableOpacity style={styles.helpContainer}>
-                  <Icon
-                    name="help-circle"
-                    size={20}
-                    color={colors.primary[600]}
-                  />
-                  <Text style={styles.helpText}>
-                    Need help? Contact support
-                  </Text>
-                </TouchableOpacity>
-              </AnimatedCard>
+              </Surface>
             </Animated.View>
 
             {/* Footer */}
-            <Animated.View
-              entering={FadeInDown.delay(800).duration(600)}
-              style={styles.footer}
-            >
-              <Text style={styles.footerText}>
+            <Animated.View entering={FadeIn.delay(500)} style={styles.footer}>
+              <Text variant="bodySmall" style={styles.footerText}>
                 By continuing, you agree to our Terms of Service
               </Text>
-              <Text style={styles.footerText}>
-                Not authorized? Contact{' '}
-                <Text style={styles.linkText}>rehabos@team.com</Text>
-              </Text>
             </Animated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </GradientBackground>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  backgroundContainer: {
+    position: 'absolute',
+    width: width * 1.5,
+    height: height * 1.5,
+    top: -height * 0.25,
+    left: -width * 0.25,
+  },
+  gradientBackground: {
+    flex: 1,
+  },
+  patternOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  circlePattern: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#16A34A',
   },
   keyboardView: {
     flex: 1,
   },
-  scrollContent: {
+  scrollContainer: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingBottom: 40,
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginTop: height * 0.08,
-    marginBottom: 40,
-  },
-  logoWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 25,
-    backgroundColor: colors.primary[50],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    elevation: 4,
-    shadowColor: colors.primary[500],
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  title: {
-    fontSize: typography.fontSize['4xl'],
-    fontFamily: typography.fontFamily.bold,
-    color: colors.primary[900],
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: typography.fontSize.base,
-    fontFamily: typography.fontFamily.regular,
-    color: colors.text.secondary,
-    textAlign: 'center',
-  },
-  formContainer: {
+  content: {
     flex: 1,
     justifyContent: 'center',
+    paddingVertical: 48,
   },
-  formHeader: {
-    flexDirection: 'row',
+  logoSection: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 48,
   },
-  formTitle: {
-    fontSize: typography.fontSize.xl,
-    fontFamily: typography.fontFamily.semiBold,
-    color: colors.text.primary,
-    marginLeft: 8,
-  },
-  formDescription: {
-    fontSize: typography.fontSize.sm,
-    fontFamily: typography.fontFamily.regular,
-    color: colors.text.secondary,
+  logoContainer: {
     marginBottom: 24,
-    lineHeight: typography.fontSize.sm * typography.lineHeight.relaxed,
+  },
+  logoSurface: {
+    width: 96,
+    height: 96,
+    borderRadius: 24,
+    backgroundColor: '#F0FDF4',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandName: {
+    fontSize: 40,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  tagline: {
+    color: '#6B7280',
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+  formSection: {
+    width: '100%',
+  },
+  formCard: {
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    padding: 32,
+   
+  },
+  welcomeText: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  subtitleText: {
+    color: '#6B7280',
+    marginBottom: 32,
   },
   inputContainer: {
     marginBottom: 24,
   },
-  input: {
-    backgroundColor: colors.background.paper,
-    fontSize: typography.fontSize.base,
+  phoneInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  countryCodeContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 10,
+    backgroundColor: '#F9FAFB',
+  },
+  countryCode: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  phoneInput: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   errorText: {
-    fontSize: typography.fontSize.xs,
-    fontFamily: typography.fontFamily.regular,
-    paddingLeft: 16,
+    color: '#F43F5E',
+    marginTop: 4,
+  },
+  helperText: {
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  buttonWrapper: {
+    width: '100%',
+  },
+  touchableButton: {
+    width: '100%',
   },
   button: {
-    marginBottom: 16,
+    borderRadius: 10,
     elevation: 2,
   },
   buttonContent: {
-    paddingVertical: 8,
+    paddingVertical: 14,
   },
   buttonLabel: {
-    fontSize: typography.fontSize.base,
-    fontFamily: typography.fontFamily.semiBold,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
-  infoContainer: {
+  infoSection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 8,
+    marginTop: 24,
+    gap: 8,
   },
   infoText: {
-    fontSize: typography.fontSize.xs,
-    fontFamily: typography.fontFamily.regular,
-    color: colors.text.secondary,
-    marginLeft: 6,
-  },
-  helpContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-  },
-  helpText: {
-    fontSize: typography.fontSize.sm,
-    fontFamily: typography.fontFamily.medium,
-    color: colors.primary[600],
-    marginLeft: 6,
+    color: '#6B7280',
   },
   footer: {
-    alignItems: 'center',
     marginTop: 32,
+    alignItems: 'center',
   },
   footerText: {
-    fontSize: typography.fontSize.xs,
-    fontFamily: typography.fontFamily.regular,
-    color: colors.text.secondary,
+    color: '#9CA3AF',
     textAlign: 'center',
-    marginBottom: 4,
-  },
-  linkText: {
-    color: colors.primary[600],
-    fontFamily: typography.fontFamily.medium,
   },
 });

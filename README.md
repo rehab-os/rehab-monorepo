@@ -1,14 +1,6 @@
 # Rehab
 
-understand my entites in libs/backend/database/src/lib/entites/ and contollers and services in                     │
-│   apps/backend/api-core/src/app/controllers and services then create patient APIs and entities such that 1. create   │
-│   patient and assign a time slot to the patient and while creating check doctors available that clinic in that time  │
-│   slot book for consultation session, then can add a revisit as well and on each visit, physiotherapist will add a   │
-│   note (SOAP note, DAP and progress notes) these three ways to add notes to patient expose APIs for the patient      │
-│   store notes per visit of of the patient. give an api to create patient and schedule visit and also to plan         │
-│   revisit and if possible then to cancel the visit and update timing. after implementing this in apps/web/clinic/    │
-│   create patients tab , note that at the time patient on each visit will be ssigned to the some physiotherapist so   │
-│   please add that section as well. add these features in the UI maintain UI consistency. 
+
 
 
 test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
@@ -119,3 +111,5 @@ And join the Nx community:
 - [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
 - [Our Youtube channel](https://www.youtube.com/@nxdevtools)
 - [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+
+name of company, logo, landing page, MVP launch, Market research, corporate

@@ -26,7 +26,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { userData } = useAppSelector(state => state.user);
+  const { userData, currentClinic } = useAppSelector(state => state.user);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -61,6 +61,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
   ];
 
   const unreadCount = notifications.filter(n => n.unread).length;
+  
+  // Check if user is a physiotherapist
+  const isPhysiotherapist = currentClinic?.role === 'physiotherapist';
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -187,10 +190,23 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
                     </p>
                   </div>
                   <div className="p-2">
-                    <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-700">Profile</span>
-                    </button>
+                    {isPhysiotherapist ? (
+                      <button 
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          router.push('/dashboard/profile');
+                        }}
+                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                      >
+                        <User className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-700">Profile</span>
+                      </button>
+                    ) : (
+                      <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left">
+                        <User className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-700">Profile</span>
+                      </button>
+                    )}
                     <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left">
                       <Settings className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-700">Settings</span>

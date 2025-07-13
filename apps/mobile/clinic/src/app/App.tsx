@@ -1,39 +1,82 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Provider } from 'react-redux';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StatusBar } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import FlashMessage from 'react-native-flash-message';
+import '../../global.css';
 
-function App() {
+import { store } from '../store/store';
+import { useAppSelector } from '../store/hooks';
+import { lightTheme } from '../theme';
+import { LoginScreen } from '../screens/auth/LoginScreen';
+import { OTPVerificationScreen } from '../screens/auth/OTPVerificationScreen';
+import { DashboardScreen } from '../screens/DashboardScreen';
+
+const Stack = createNativeStackNavigator();
+const queryClient = new QueryClient();
+
+function AuthStack() {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Welcome to Clinic Mobile! 🏥</Text>
-        <Text style={styles.subtitle}>Your React Native app is running</Text>
-      </View>
-    </SafeAreaView>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    >
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
+    </Stack.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-  },
-});
+function RootNavigator() {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
-// Use ONLY default export
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {isAuthenticated ? (
+        <Stack.Screen
+          name="Dashboard"
+          component={DashboardScreen}
+          options={{ animation: 'fade' }}
+        />
+      ) : (
+        <Stack.Screen
+          name="Auth"
+          component={AuthStack}
+          options={{ animation: 'fade' }}
+        />
+      )}
+    </Stack.Navigator>
+  );
+}
+
+function App() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <PaperProvider theme={lightTheme}>
+            <SafeAreaProvider>
+              <StatusBar
+                barStyle="dark-content"
+                backgroundColor={lightTheme.colors.background}
+              />
+              <NavigationContainer>
+                <RootNavigator />
+              </NavigationContainer>
+              <FlashMessage position="top" />
+            </SafeAreaProvider>
+          </PaperProvider>
+        </QueryClientProvider>
+      </Provider>
+    </GestureHandlerRootView>
+  );
+}
+
 export default App;

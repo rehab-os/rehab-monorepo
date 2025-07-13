@@ -24,6 +24,7 @@ import { ClinicsController } from './controllers/clinics.controller';
 import { UsersController } from './controllers/users.controller';
 import { TeamController } from './controllers/team.controller';
 import { PatientsController } from './controllers/patients.controller';
+import { PhysiotherapistProfileController } from './controllers/physiotherapist-profile.controller';
 // import { AppointmentsController } from './controllers/appointments.controller';
 
 // All your services
@@ -35,6 +36,7 @@ import { ClinicsService } from './services/clinics.service';
 import { UsersService } from './services/users.service';
 import { TeamService } from './services/team.service';
 import { PatientsService } from './services/patients.service';
+import { PhysiotherapistProfileService } from './services/physiotherapist-profile.service';
 // import { AppointmentsService } from './services/appointments.service';
 
 // Import all entities from database library
@@ -163,6 +165,7 @@ import { JwtModule } from '@nestjs/jwt';
     UsersController,
     TeamController,
     PatientsController,
+    PhysiotherapistProfileController,
     // AppointmentsController,
   ],
 
@@ -177,6 +180,7 @@ import { JwtModule } from '@nestjs/jwt';
     UsersService,
     TeamService,
     PatientsService,
+    PhysiotherapistProfileService,
     // AppointmentsService,
 
     // ========== DEPENDENCY INJECTION ==========

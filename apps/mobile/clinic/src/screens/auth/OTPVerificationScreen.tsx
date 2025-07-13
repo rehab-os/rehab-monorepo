@@ -9,9 +9,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Animated, {
   FadeInDown,
@@ -23,35 +24,30 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Button, ActivityIndicator } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import OTPInputView from '@twotalltotems/react-native-otp-input';
 
-import { AppDispatch, RootState } from '@rehab/shared';
-import {
-  login,
-  sendOtp,
-  fetchCurrentUser,
-} from '@rehab/shared/store/slices/authSlice';
-import { colors, typography } from '@rehab/shared/theme';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { setLoading, setUser, setToken } from '../../store/slices/authSlice';
+import ApiManager from '../../services/api/ApiManager';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
 import GradientBackground from '../../components/ui/GradientBackground';
 import AnimatedCard from '../../components/ui/AnimatedCard';
 
 const { width } = Dimensions.get('window');
 
 export const OTPVerificationScreen: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const route = useRoute();
-  const { phone } = route.params as { phone: string };
+  const { phoneNumber } = route.params as { phoneNumber: string };
 
-  const { loading, error, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
 
-  const otpInputRef = useRef<OTPInputView>(null);
+  const otpInputRefs = useRef<TextInput[]>([]);
   const timerRef = useRef<NodeJS.Timeout>();
 
   // Animation values
@@ -68,11 +64,9 @@ export const OTPVerificationScreen: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // Fetch user data after successful login
-      dispatch(fetchCurrentUser());
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Main' }],
+        routes: [{ name: 'Dashboard' }],
       });
     }
   }, [isAuthenticated]);
@@ -108,17 +102,70 @@ export const OTPVerificationScreen: React.FC = () => {
     }, 1000);
   };
 
-  const handleVerifyOTP = () => {
-    if (otp.length === 6) {
-      dispatch(login({ phone, otp }));
+  const handleOtpChange = (value: string, index: number) => {
+    if (value.length > 1) {
+      // Handle paste
+      const otpArray = value.slice(0, 6).split('');
+      const newOtp = [...otp];
+      otpArray.forEach((digit, i) => {
+        if (i < 6) {
+          newOtp[i] = digit;
+        }
+      });
+      setOtp(newOtp);
+      otpInputRefs.current[5]?.focus();
+    } else {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
+
+      // Move to next input
+      if (value && index < 5) {
+        otpInputRefs.current[index + 1]?.focus();
+      }
     }
   };
 
-  const handleResendOTP = () => {
-    dispatch(sendOtp({ phone }));
-    startResendTimer();
-    setOtp('');
-    otpInputRef.current?.clear();
+  const handleKeyPress = (e: any, index: number) => {
+    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    const otpCode = otp.join('');
+    if (otpCode.length === 6) {
+      dispatch(setLoading(true));
+      try {
+        const response = await ApiManager.verifyOtp({
+          phone: phoneNumber,
+          otp: otpCode,
+        });
+        
+        if (response.success) {
+          dispatch(setUser(response.data.user));
+          dispatch(setToken(response.data.token));
+        }
+      } catch (error) {
+        console.error('OTP verification error:', error);
+      } finally {
+        dispatch(setLoading(false));
+      }
+    }
+  };
+
+  const handleResendOTP = async () => {
+    dispatch(setLoading(true));
+    try {
+      await ApiManager.sendOtp({ phone: phoneNumber });
+      startResendTimer();
+      setOtp(['', '', '', '', '', '']);
+      otpInputRefs.current[0]?.focus();
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+    } finally {
+      dispatch(setLoading(false));
+    }
   };
 
   const formatPhoneNumber = (phoneNumber: string) => {
@@ -164,26 +211,35 @@ export const OTPVerificationScreen: React.FC = () => {
               </View>
               <Text style={styles.title}>Verify Your Phone</Text>
               <Text style={styles.subtitle}>We've sent a 6-digit code to</Text>
-              <Text style={styles.phoneNumber}>{formatPhoneNumber(phone)}</Text>
+              <Text style={styles.phoneNumber}>{formatPhoneNumber(phoneNumber)}</Text>
             </Animated.View>
 
             {/* OTP Input */}
             <AnimatedCard delay={300}>
               <Animated.View style={shakeAnimatedStyle}>
                 <Text style={styles.otpLabel}>Enter Verification Code</Text>
-                <OTPInputView
-                  ref={otpInputRef}
-                  style={styles.otpInput}
-                  pinCount={6}
-                  code={otp}
-                  onCodeChanged={setOtp}
-                  onCodeFilled={handleVerifyOTP}
-                  autoFocusOnLoad
-                  codeInputFieldStyle={styles.otpCell}
-                  codeInputHighlightStyle={styles.otpCellFocused}
-                  selectionColor={colors.primary[500]}
-                  editable={!loading}
-                />
+                <View style={styles.otpContainer}>
+                  {otp.map((digit, index) => (
+                    <TextInput
+                      key={index}
+                      ref={(ref) => {
+                        if (ref) otpInputRefs.current[index] = ref;
+                      }}
+                      style={[
+                        styles.otpCell,
+                        digit ? styles.otpCellFocused : null,
+                      ]}
+                      value={digit}
+                      onChangeText={(value) => handleOtpChange(value, index)}
+                      onKeyPress={(e) => handleKeyPress(e, index)}
+                      keyboardType="numeric"
+                      maxLength={1}
+                      textAlign="center"
+                      editable={!isLoading}
+                      autoFocus={index === 0}
+                    />
+                  ))}
+                </View>
 
                 {error && (
                   <Animated.View
@@ -199,8 +255,8 @@ export const OTPVerificationScreen: React.FC = () => {
               <Button
                 mode="contained"
                 onPress={handleVerifyOTP}
-                loading={loading}
-                disabled={loading || otp.length !== 6}
+                loading={isLoading}
+                disabled={isLoading || otp.join('').length !== 6}
                 style={styles.verifyButton}
                 contentStyle={styles.buttonContent}
                 labelStyle={styles.buttonLabel}
@@ -209,7 +265,7 @@ export const OTPVerificationScreen: React.FC = () => {
                   roundness: 12,
                 }}
               >
-                {loading ? 'Verifying...' : 'Verify OTP'}
+                {isLoading ? 'Verifying...' : 'Verify OTP'}
               </Button>
 
               <View style={styles.resendContainer}>
@@ -298,10 +354,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
-  otpInput: {
-    width: '100%',
-    height: 60,
+  otpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginBottom: 24,
+    gap: 12,
   },
   otpCell: {
     width: width / 8,

@@ -2,7 +2,7 @@
 import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { colors } from '@rehab/shared/theme';
+import { colors } from '../../theme';
 
 interface AnimatedCardProps {
   children: React.ReactNode;

@@ -98,7 +98,7 @@ export class PatientsService {
         };
     }
 
-    async findOnePatient(id: string): Promise<PatientResponseDto> {
+    async findOnePatient(id: string, userId?: string): Promise<PatientResponseDto> {
         const patient = await this.patientRepository.findOne({
             where: { id },
             relations: ['clinic', 'creator', 'referrer', 'visits']
@@ -108,7 +108,111 @@ export class PatientsService {
             throw new NotFoundException('Patient not found');
         }
 
+        // If userId is provided, check access
+        if (userId) {
+            const userClinics = await this.userClinicRoleRepository.find({
+                where: { user_id: userId },
+                select: ['clinic_id']
+            });
+            const clinicIds = userClinics.map(uc => uc.clinic_id);
+
+            if (!clinicIds.includes(patient.clinic_id)) {
+                throw new NotFoundException('Patient not found');
+            }
+        }
+
         return this.toPatientResponseDto(patient);
+    }
+
+    async findPatientVisits(patientId: string, query: VisitListQueryDto, userId: string): Promise<{ visits: VisitResponseDto[]; total: number }> {
+        // First verify patient access
+        const patient = await this.findOnePatient(patientId, userId);
+        
+        // Then get visits with patient_id filter
+        const visitQuery = {
+            ...query,
+            patient_id: patientId,
+            clinic_id: patient.clinic_id // Ensure we only get visits from the same clinic
+        };
+        
+        return this.findAllVisits(visitQuery);
+    }
+
+    async getPatientVisitHistory(patientId: string, userId: string): Promise<any> {
+        try {
+            // Verify patient access
+            const patient = await this.findOnePatient(patientId, userId);
+            
+            // Get all visits for this patient
+            const visits = await this.visitRepository.find({
+                where: { 
+                    patient_id: patientId,
+                    clinic_id: patient.clinic_id 
+                },
+                relations: ['physiotherapist', 'note'],
+                order: { scheduled_date: 'DESC', scheduled_time: 'DESC' }
+            });
+
+            // Calculate statistics
+            const totalVisits = visits.length;
+            const completedVisits = visits.filter(v => v.status === VisitStatus.COMPLETED).length;
+            const cancelledVisits = visits.filter(v => v.status === VisitStatus.CANCELLED).length;
+            const upcomingVisits = visits.filter(v => v.status === VisitStatus.SCHEDULED).length;
+            const notesCount = visits.filter(v => v.note).length;
+
+            // Group visits by month for history
+            const visitsByMonth = visits.reduce((acc, visit) => {
+                try {
+                    // Convert scheduled_date to Date object if it's a string
+                    const visitDate = visit.scheduled_date instanceof Date 
+                        ? visit.scheduled_date 
+                        : new Date(visit.scheduled_date);
+                    
+                    // Check if date is valid
+                    if (isNaN(visitDate.getTime())) {
+                        console.error('Invalid date for visit:', visit.id, visit.scheduled_date);
+                        return acc;
+                    }
+                    
+                    const monthKey = `${visitDate.getFullYear()}-${String(visitDate.getMonth() + 1).padStart(2, '0')}`;
+                    if (!acc[monthKey]) {
+                        acc[monthKey] = {
+                            month: monthKey,
+                            count: 0,
+                            completed: 0,
+                            cancelled: 0
+                        };
+                    }
+                    acc[monthKey].count++;
+                    if (visit.status === VisitStatus.COMPLETED) acc[monthKey].completed++;
+                    if (visit.status === VisitStatus.CANCELLED) acc[monthKey].cancelled++;
+                } catch (error) {
+                    console.error('Error processing visit date:', visit.id, error);
+                }
+                return acc;
+            }, {} as Record<string, any>);
+
+            // Calculate attendance rate safely
+            const pastVisits = totalVisits - upcomingVisits;
+            const attendanceRate = pastVisits > 0 ? ((completedVisits / pastVisits) * 100).toFixed(1) : '0';
+
+            return {
+                patient: this.toPatientResponseDto(patient),
+                statistics: {
+                    totalVisits,
+                    completedVisits,
+                    cancelledVisits,
+                    upcomingVisits,
+                    notesCount,
+                    attendanceRate
+                },
+                visitsByMonth: Object.values(visitsByMonth).sort((a, b) => b.month.localeCompare(a.month)),
+                recentVisits: visits.slice(0, 10).map(v => this.toVisitResponseDto(v))
+            };
+        } catch (error) {
+            console.error('Error in getPatientVisitHistory:', error);
+            throw error;
+        }
     }
 
     async updatePatient(id: string, updatePatientDto: UpdatePatientDto): Promise<PatientResponseDto> {
@@ -412,10 +516,22 @@ export class PatientsService {
         // Check if visit exists and doesn't already have a note
         const visit = await this.visitRepository.findOne({
             where: { id: createNoteDto.visit_id },
-            relations: ['note']
+            relations: ['note', 'patient', 'clinic']
         });
 
         if (!visit) {
+            throw new NotFoundException('Visit not found');
+        }
+
+        // Verify user has access to this clinic
+        const userClinicRole = await this.userClinicRoleRepository.findOne({
+            where: { 
+                user_id: createdBy,
+                clinic_id: visit.clinic_id
+            }
+        });
+
+        if (!userClinicRole) {
             throw new NotFoundException('Visit not found');
         }
 
@@ -563,7 +679,7 @@ export class PatientsService {
             clinic_id: visit.clinic_id,
             physiotherapist_id: visit.physiotherapist_id,
             visit_type: visit.visit_type,
-            scheduled_date: visit.scheduled_date,
+            scheduled_date: visit.scheduled_date instanceof Date ? visit.scheduled_date : new Date(visit.scheduled_date),
             scheduled_time: visit.scheduled_time,
             duration_minutes: visit.duration_minutes,
             status: visit.status,

@@ -225,8 +225,33 @@ export class PatientsController {
     // @RequirePermissions('patients:read')
     @ApiOperation({ summary: 'Get patient by ID' })
     @ApiResponse({ status: 200, description: 'Patient details', type: PatientResponseDto })
-    findOnePatient(@Param('id') id: string): Promise<PatientResponseDto> {
-        return this.patientsService.findOnePatient(id);
+    findOnePatient(@Param('id') id: string, @Request() req: AuthenticatedRequest): Promise<PatientResponseDto> {
+        return this.patientsService.findOnePatient(id, req.user.id);
+    }
+
+    @Get(':id/visits')
+    @UseGuards(PermissionsGuard)
+    // @RequirePermissions('visits:read')
+    @ApiOperation({ summary: 'Get all visits for a specific patient' })
+    @ApiResponse({ status: 200, description: 'List of patient visits' })
+    findPatientVisits(
+        @Param('id') id: string,
+        @Query() query: VisitListQueryDto,
+        @Request() req: AuthenticatedRequest
+    ): Promise<{ visits: VisitResponseDto[]; total: number }> {
+        return this.patientsService.findPatientVisits(id, query, req.user.id);
+    }
+
+    @Get(':id/visit-history')
+    @UseGuards(PermissionsGuard)
+    // @RequirePermissions('visits:read')
+    @ApiOperation({ summary: 'Get visit history and statistics for a patient' })
+    @ApiResponse({ status: 200, description: 'Patient visit history and statistics' })
+    getPatientVisitHistory(
+        @Param('id') id: string,
+        @Request() req: AuthenticatedRequest
+    ): Promise<any> {
+        return this.patientsService.getPatientVisitHistory(id, req.user.id);
     }
 
     @Patch(':id')
