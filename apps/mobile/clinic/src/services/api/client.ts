@@ -52,7 +52,7 @@ class ApiClient {
           await clearAuthTokens();
           store.dispatch(logout());
         }
-        
+        console.log("got an error:", error)
         const errorMessage = error.response?.data?.message || 'An error occurred';
         return Promise.reject(new Error(errorMessage));
       }

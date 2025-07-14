@@ -24,14 +24,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Button, ActivityIndicator } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { showMessage } from 'react-native-flash-message';
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setLoading, setUser, setToken } from '../../store/slices/authSlice';
+import { setLoading } from '../../store/slices/authSlice';
 import ApiManager from '../../services/api/ApiManager';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import GradientBackground from '../../components/ui/GradientBackground';
 import AnimatedCard from '../../components/ui/AnimatedCard';
+// import {MaterialCommun}
 
 const { width } = Dimensions.get('window');
 
@@ -41,7 +43,8 @@ export const OTPVerificationScreen: React.FC = () => {
   const route = useRoute();
   const { phoneNumber } = route.params as { phoneNumber: string };
 
-  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { loading: isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
+  const [error, setError] = useState<string | null>(null);
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resendTimer, setResendTimer] = useState(30);
@@ -135,6 +138,7 @@ export const OTPVerificationScreen: React.FC = () => {
   const handleVerifyOTP = async () => {
     const otpCode = otp.join('');
     if (otpCode.length === 6) {
+      setError(null);
       dispatch(setLoading(true));
       try {
         const response = await ApiManager.verifyOtp({
@@ -142,12 +146,27 @@ export const OTPVerificationScreen: React.FC = () => {
           otp: otpCode,
         });
         
-        if (response.success) {
-          dispatch(setUser(response.data.user));
-          dispatch(setToken(response.data.token));
+        // ApiManager.verifyOtp already handles the Redux state update via loginSuccess
+        // and token storage in AsyncStorage, so we just need to check success
+        if (!response.success) {
+          const errorMessage = response.message || 'Invalid OTP. Please try again.';
+          setError(errorMessage);
+          showMessage({
+            message: 'Verification Failed',
+            description: errorMessage,
+            type: 'danger',
+            icon: 'danger',
+          });
         }
-      } catch (error) {
-        console.error('OTP verification error:', error);
+      } catch (error: any) {
+        const errorMessage = error.message || 'Something went wrong. Please try again.';
+        setError(errorMessage);
+        showMessage({
+          message: 'Error',
+          description: errorMessage,
+          type: 'danger',
+          icon: 'danger',
+        });
       } finally {
         dispatch(setLoading(false));
       }
@@ -156,13 +175,34 @@ export const OTPVerificationScreen: React.FC = () => {
 
   const handleResendOTP = async () => {
     dispatch(setLoading(true));
+    setError(null);
     try {
-      await ApiManager.sendOtp({ phone: phoneNumber });
-      startResendTimer();
-      setOtp(['', '', '', '', '', '']);
-      otpInputRefs.current[0]?.focus();
-    } catch (error) {
-      console.error('Resend OTP error:', error);
+      const response = await ApiManager.sendOtp({ phone: phoneNumber });
+      if (response.success) {
+        startResendTimer();
+        setOtp(['', '', '', '', '', '']);
+        otpInputRefs.current[0]?.focus();
+        showMessage({
+          message: 'OTP Resent',
+          description: 'A new verification code has been sent to your phone',
+          type: 'success',
+          icon: 'success',
+        });
+      } else {
+        showMessage({
+          message: 'Failed to resend OTP',
+          description: response.message || 'Please try again',
+          type: 'danger',
+          icon: 'danger',
+        });
+      }
+    } catch (error: any) {
+      showMessage({
+        message: 'Error',
+        description: error.message || 'Failed to resend OTP',
+        type: 'danger',
+        icon: 'danger',
+      });
     } finally {
       dispatch(setLoading(false));
     }
