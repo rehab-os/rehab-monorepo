@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authSlice, organizationSlice, clinicSlice, userSlice } from './slices';
+import patientReducer from './slices/patientSlice';
 
 export const store = configureStore({
   reducer: {
@@ -7,6 +8,7 @@ export const store = configureStore({
     organization: organizationSlice.reducer,
     clinic: clinicSlice.reducer,
     user: userSlice.reducer,
+    patient: patientReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -14,6 +16,7 @@ export const store = configureStore({
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
+  devTools: __DEV__,
 });
 
 export type RootState = ReturnType<typeof store.getState>;

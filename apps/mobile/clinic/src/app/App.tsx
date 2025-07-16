@@ -16,6 +16,7 @@ import { lightTheme } from '../theme';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { OTPVerificationScreen } from '../screens/auth/OTPVerificationScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
+import PatientsScreen from '../screens/PatientsScreen';
 
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
@@ -34,6 +35,21 @@ function AuthStack() {
   );
 }
 
+function MainStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    >
+      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Patients" component={PatientsScreen} />
+      {/* Add more screens here as needed */}
+    </Stack.Navigator>
+  );
+}
+
 function RootNavigator() {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -41,8 +57,8 @@ function RootNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
         <Stack.Screen
-          name="Dashboard"
-          component={DashboardScreen}
+          name="Main"
+          component={MainStack}
           options={{ animation: 'fade' }}
         />
       ) : (

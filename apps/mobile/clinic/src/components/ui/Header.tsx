@@ -45,9 +45,69 @@ export const Header: React.FC<HeaderProps> = ({
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const { userData } = useAppSelector(state => state.user);
+  
+  // Get all Redux state
+  const authState = useAppSelector(state => state.auth);
+  const userState = useAppSelector(state => state.user);
+  const organizationState = useAppSelector(state => state.organization);
+  const clinicState = useAppSelector(state => state.clinic);
+  
+  // For backward compatibility
+  const { userData } = userState;
+  
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Console log organized Redux state
+  React.useEffect(() => {
+    console.log('🔥 HEADER COMPONENT MOUNTED/UPDATED 🔥');
+    console.log('\n🔥 === REDUX STATE DEBUG === 🔥');
+    console.log('📅 Timestamp:', new Date().toLocaleTimeString());
+    
+    console.log('\n🔐 AUTH STATE:');
+    console.log('├── isAuthenticated:', authState.isAuthenticated);
+    console.log('├── loading:', authState.loading);
+    console.log('├── otpSent:', authState.otpSent);
+    console.log('├── otpVerifying:', authState.otpVerifying);
+    console.log('├── phoneNumber:', authState.phoneNumber);
+    console.log('└── user:', authState.user);
+    
+    console.log('\n👤 USER STATE:');
+    console.log('├── userData:', userState.userData);
+    console.log('├── currentClinic:', userState.currentClinic);
+    console.log('├── loading:', userState.loading);
+    console.log('└── error:', userState.error);
+    
+    console.log('\n🏢 ORGANIZATION STATE:');
+    console.log('└── organizations:', organizationState.organizations);
+    
+    console.log('\n🏥 CLINIC STATE:');
+    console.log('└── clinics:', clinicState.clinics);
+    
+    if (userState.userData?.organization) {
+      console.log('\n🎯 CURRENT USER CONTEXT:');
+      console.log('├── Organization:', userState.userData.organization.name);
+      console.log('├── Is Owner:', userState.userData.organization.is_owner);
+      console.log('├── Available Clinics:', userState.userData.organization.clinics?.length || 0);
+      
+      if (userState.currentClinic) {
+        console.log('├── Current Clinic:', userState.currentClinic.name);
+        console.log('├── Current Role:', userState.currentClinic.role);
+        console.log('└── Is Clinic Admin:', userState.currentClinic.is_admin);
+      } else {
+        console.log('└── Current Clinic: None (Organization Level)');
+      }
+      
+      console.log('\n📋 ALL USER CLINICS:');
+      userState.userData.organization.clinics?.forEach((clinic, index) => {
+        console.log(`├── ${index + 1}. ${clinic.name}`);
+        console.log(`│   ├── Role: ${clinic.role}`);
+        console.log(`│   └── Admin: ${clinic.is_admin}`);
+      });
+    }
+    
+    console.log('\n🔥 === END REDUX STATE === 🔥\n');
+  }, [authState, userState, organizationState, clinicState]);
 
   const handleLogout = () => {
     HapticFeedback.trigger('impactLight');
