@@ -78,6 +78,23 @@ class ApiClient {
   async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     return this.client.delete(url, config);
   }
+
+  async uploadFile<T = any>(url: string, file: File | Blob, fieldName: string = 'file', config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    const formData = new FormData();
+    formData.append(fieldName, file);
+    
+    return this.client.post(url, formData, {
+      ...config,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        ...config?.headers,
+      },
+    });
+  }
+
+  async uploadAudio<T = any>(url: string, audioFile: File | Blob, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    return this.uploadFile(url, audioFile, 'audio', config);
+  }
 }
 
 export const apiClient = new ApiClient();

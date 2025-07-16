@@ -327,6 +327,16 @@ class ApiManager {
   static deleteWorkshop = (id: string) => {
     return apiClient.delete(ENDPOINTS.DELETE_WORKSHOP(id));
   };
+
+  // Audio
+  static transcribeAudio = (audioFile: File | Blob) => {
+    return apiClient.uploadAudio(ENDPOINTS.TRANSCRIBE_AUDIO(), audioFile);
+  };
+
+  // Notes Generation
+  static generateNote = (data: { transcription: string; noteType: 'SOAP' | 'BAP' | 'Progress' }) => {
+    return apiClient.post(ENDPOINTS.GENERATE_NOTE(), data);
+  };
 }
 
 export default ApiManager;

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsString, IsOptional, IsUUID, IsEnum, IsArray, IsNotEmpty, ValidateNested, IsObject, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsEnum, IsArray, IsNotEmpty, ValidateNested, IsObject, IsBoolean, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 import { NoteType } from '@rehab/database';
 
@@ -254,4 +254,58 @@ export class NoteListQueryDto {
     @IsOptional()
     @Type(() => Number)
     limit?: number;
+}
+
+export class TranscribeAudioDto {
+    @ApiProperty({ type: 'string', format: 'binary' })
+    audio!: any;
+}
+
+export class GenerateNoteDto {
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    transcription!: string;
+
+    @ApiProperty({ enum: ['SOAP', 'BAP', 'Progress'] })
+    @IsNotEmpty()
+    @IsIn(['SOAP', 'BAP', 'Progress'])
+    noteType!: 'SOAP' | 'BAP' | 'Progress';
+}
+
+export class BAPNoteDataDto {
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    behavior!: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    assessment!: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    plan!: string;
+}
+
+export class ProgressNoteResponseDto {
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    progressNote!: string;
+}
+
+export class TranscriptionResponseDto {
+    @ApiProperty()
+    transcription!: string;
+}
+
+export class GenerateNoteResponseDto {
+    @ApiProperty()
+    noteType!: string;
+
+    @ApiProperty()
+    note!: SOAPNoteDataDto | BAPNoteDataDto | ProgressNoteResponseDto;
 }

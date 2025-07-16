@@ -200,6 +200,18 @@ class ApiManager {
         const url = BASE_URL + ENDPOINTS.GET_PERMISSIONS()
         return ApiMethods.get(url)
     }
+
+    // Audio
+    static transcribeAudio = (file: File) => {
+        const url = BASE_URL + ENDPOINTS.TRANSCRIBE_AUDIO()
+        return ApiMethods.audioPost(url, file)
+    }
+
+    // Notes Generation
+    static generateNote = (data: { transcription: string; noteType: 'SOAP' | 'BAP' | 'Progress' }) => {
+        const url = BASE_URL + ENDPOINTS.GENERATE_NOTE()
+        return ApiMethods.post(url, data)
+    }
 }
 
 export default ApiManager

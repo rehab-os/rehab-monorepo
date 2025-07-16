@@ -418,3 +418,47 @@ export interface NoteResponseDto {
     created_at: Date
     updated_at: Date
 }
+
+// Team Management Types
+export interface AddTeamMemberDto {
+    user_id: string
+    role_id: string
+    clinic_id?: string
+}
+
+// Audio Transcription Types
+export interface TranscribeAudioDto {
+    audio: File
+}
+
+export interface TranscriptionResponseDto {
+    transcription: string
+}
+
+// Notes Generation Types
+export interface GenerateNoteDto {
+    transcription: string
+    noteType: 'SOAP' | 'BAP' | 'Progress'
+}
+
+export interface SOAPNoteData {
+    subjective: string
+    objective: string
+    assessment: string
+    plan: string
+}
+
+export interface BAPNoteData {
+    behavior: string
+    assessment: string
+    plan: string
+}
+
+export interface ProgressNoteData {
+    progressNote: string
+}
+
+export interface GenerateNoteResponseDto {
+    noteType: string
+    note: SOAPNoteData | BAPNoteData | ProgressNoteData
+}

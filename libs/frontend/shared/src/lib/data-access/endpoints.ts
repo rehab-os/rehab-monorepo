@@ -91,6 +91,12 @@ export const ENDPOINTS = {
     DELETE_TECHNIQUE: (id: string) => `physiotherapist-profile/technique/${id}`,
     DELETE_MACHINE: (id: string) => `physiotherapist-profile/machine/${id}`,
     DELETE_WORKSHOP: (id: string) => `physiotherapist-profile/workshop/${id}`,
+
+    // Audio
+    TRANSCRIBE_AUDIO: () => 'audio/transcribe',
+
+    // Notes Generation
+    GENERATE_NOTE: () => 'notes/generate',
 }
 
 // export default ENDPOINTS

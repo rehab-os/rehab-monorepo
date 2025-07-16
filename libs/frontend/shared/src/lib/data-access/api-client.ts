@@ -66,9 +66,9 @@ export class ApiMethods {
         }
     }
 
-    static async apiFileRequest(method: string, url: string, file: File) {
+    static async apiFileRequest(method: string, url: string, file: File, fieldName: string = 'file') {
         const formData = new FormData()
-        formData.append('file', file)
+        formData.append(fieldName, file)
 
         try {
             const response = await fetch(url, {
@@ -91,8 +91,12 @@ export class ApiMethods {
         return this.apiRequest('POST', url, data, headers)
     }
 
-    static filePost(url: string, file: File) {
-        return this.apiFileRequest('POST', url, file)
+    static filePost(url: string, file: File, fieldName?: string) {
+        return this.apiFileRequest('POST', url, file, fieldName)
+    }
+
+    static audioPost(url: string, file: File) {
+        return this.apiFileRequest('POST', url, file, 'audio')
     }
 
     static put(url: string, data: any, headers?: Record<string, string>) {
