@@ -4,7 +4,8 @@
   "license": "MIT",
 "scripts": {
   "clinic:mobile": "cd apps\\mobile\\clinic\\android && gradlew.bat clean && cd .. && npx react-native start --reset-cache",
-  "clinic:android": "cd apps\\mobile\\clinic\\android && gradlew.bat clean && cd .. && npx react-native run-android --reset-cache"
+  "clinic:android": "cd apps\\mobile\\clinic\\android && gradlew.bat clean && cd .. && npx react-native run-android --reset-cache",
+  "clinic:web": "$env:PORT = 3006; npx nx run clinic-web:dev"
 },
   "private": true,
   "devDependencies": {

@@ -13,6 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../store/hooks';
 import ApiManager from '../services/api/ApiManager';
 import {
@@ -29,12 +30,14 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AnimatedCard } from '../components/ui/AnimatedCard';
 import { colors } from '../theme/colors';
 import PatientCard from '../components/PatientCard';
+import AddPatientModal from '../components/modals/AddPatientModal';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
 
-export default function PatientsScreen({ navigation }: any) {
+export default function PatientsScreen() {
   const dispatch = useDispatch();
+  const navigation = useNavigation<any>();
   const { currentClinic } = useAppSelector((state) => state.user || {});
   const {
     patients = [],
@@ -48,6 +51,7 @@ export default function PatientsScreen({ navigation }: any) {
 
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const limit = 12;
 
@@ -98,7 +102,7 @@ export default function PatientsScreen({ navigation }: any) {
   };
 
   const handleAddPatient = () => {
-    navigation.navigate('AddPatient');
+    setShowAddModal(true);
   };
 
   const handleViewPatient = (patient: any) => {
@@ -108,7 +112,8 @@ export default function PatientsScreen({ navigation }: any) {
 
   const handleScheduleVisit = (patient: any) => {
     dispatch(setSelectedPatient(patient));
-    navigation.navigate('ScheduleVisit', { patient });
+    // TODO: Implement schedule visit modal
+    console.log('Schedule visit for patient:', patient.full_name);
   };
 
   const activePatientCount = patients?.filter((p) => p?.status === 'ACTIVE').length || 0;
@@ -384,6 +389,16 @@ export default function PatientsScreen({ navigation }: any) {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      {/* Add Patient Modal */}
+      <AddPatientModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => {
+          setShowAddModal(false);
+          fetchPatients();
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -25,6 +25,8 @@ import { loginSuccess, setUser, setOtpSent, setPhoneNumber } from '../../store/s
 import { setOrganizations } from '../../store/slices/organizationSlice';
 import { setClinics } from '../../store/slices/clinicSlice';
 import { setUserData } from '../../store/slices/userSlice';
+import { setVisits, addVisit, updateVisit as updateVisitInStore } from '../../store/slices/visitSlice';
+import { setNotes, addNote, updateNote as updateNoteInStore } from '../../store/slices/noteSlice';
 
 class ApiManager {
   // Auth
@@ -160,40 +162,80 @@ class ApiManager {
   };
 
   // Visits
-  static getVisits = (params?: any) => {
-    return apiClient.get(ENDPOINTS.GET_VISITS(), { params });
+  static getVisits = async (params?: any) => {
+    const response = await apiClient.get(ENDPOINTS.GET_VISITS(), { params });
+    if (response.success && response.data) {
+      // Handle both array and object responses
+      const visitsData = Array.isArray(response.data) 
+        ? { visits: response.data, total: response.data.length }
+        : response.data;
+      
+      store.dispatch(setVisits({
+        visits: Array.isArray(visitsData.visits) ? visitsData.visits : [],
+        total: visitsData.total || 0
+      }));
+    }
+    return response;
   };
 
   static getVisit = (id: string) => {
     return apiClient.get(ENDPOINTS.GET_VISIT(id));
   };
 
-  static createVisit = (data: CreateVisitDto) => {
-    return apiClient.post(ENDPOINTS.CREATE_VISIT(), data);
+  static createVisit = async (data: CreateVisitDto) => {
+    const response = await apiClient.post(ENDPOINTS.CREATE_VISIT(), data);
+    if (response.success && response.data) {
+      store.dispatch(addVisit(response.data));
+    }
+    return response;
   };
 
-  static updateVisit = (id: string, data: UpdateVisitDto) => {
-    return apiClient.patch(ENDPOINTS.UPDATE_VISIT(id), data);
+  static updateVisit = async (id: string, data: UpdateVisitDto) => {
+    const response = await apiClient.patch(ENDPOINTS.UPDATE_VISIT(id), data);
+    if (response.success && response.data) {
+      store.dispatch(updateVisitInStore(response.data));
+    }
+    return response;
   };
 
-  static checkInVisit = (id: string, data: CheckInVisitDto) => {
-    return apiClient.post(ENDPOINTS.CHECK_IN_VISIT(id), data);
+  static checkInVisit = async (id: string, data: CheckInVisitDto) => {
+    const response = await apiClient.post(ENDPOINTS.CHECK_IN_VISIT(id), data);
+    if (response.success && response.data) {
+      store.dispatch(updateVisitInStore(response.data));
+    }
+    return response;
   };
 
-  static startVisit = (id: string, data: StartVisitDto) => {
-    return apiClient.post(ENDPOINTS.START_VISIT(id), data);
+  static startVisit = async (id: string, data: StartVisitDto) => {
+    const response = await apiClient.post(ENDPOINTS.START_VISIT(id), data);
+    if (response.success && response.data) {
+      store.dispatch(updateVisitInStore(response.data));
+    }
+    return response;
   };
 
-  static completeVisit = (id: string) => {
-    return apiClient.post(ENDPOINTS.COMPLETE_VISIT(id), {});
+  static completeVisit = async (id: string) => {
+    const response = await apiClient.post(ENDPOINTS.COMPLETE_VISIT(id), {});
+    if (response.success && response.data) {
+      store.dispatch(updateVisitInStore(response.data));
+    }
+    return response;
   };
 
-  static cancelVisit = (id: string, data: CancelVisitDto) => {
-    return apiClient.post(ENDPOINTS.CANCEL_VISIT(id), data);
+  static cancelVisit = async (id: string, data: CancelVisitDto) => {
+    const response = await apiClient.post(ENDPOINTS.CANCEL_VISIT(id), data);
+    if (response.success && response.data) {
+      store.dispatch(updateVisitInStore(response.data));
+    }
+    return response;
   };
 
-  static rescheduleVisit = (id: string, data: RescheduleVisitDto) => {
-    return apiClient.put(ENDPOINTS.RESCHEDULE_VISIT(id), data);
+  static rescheduleVisit = async (id: string, data: RescheduleVisitDto) => {
+    const response = await apiClient.put(ENDPOINTS.RESCHEDULE_VISIT(id), data);
+    if (response.success && response.data) {
+      store.dispatch(updateVisitInStore(response.data));
+    }
+    return response;
   };
 
   static getAvailablePhysiotherapists = (data: PhysiotherapistAvailabilityDto) => {
@@ -201,20 +243,40 @@ class ApiManager {
   };
 
   // Notes
-  static createNote = (data: CreateNoteDto) => {
-    return apiClient.post(ENDPOINTS.CREATE_NOTE(), data);
+  static createNote = async (data: CreateNoteDto) => {
+    const response = await apiClient.post(ENDPOINTS.CREATE_NOTE(), data);
+    if (response.success && response.data) {
+      store.dispatch(addNote(response.data));
+    }
+    return response;
   };
 
   static getNote = (id: string) => {
     return apiClient.get(ENDPOINTS.GET_NOTE(id));
   };
 
-  static updateNote = (id: string, data: UpdateNoteDto) => {
-    return apiClient.patch(ENDPOINTS.UPDATE_NOTE(id), data);
+  static updateNote = async (id: string, data: UpdateNoteDto) => {
+    const response = await apiClient.patch(ENDPOINTS.UPDATE_NOTE(id), data);
+    if (response.success && response.data) {
+      store.dispatch(updateNoteInStore(response.data));
+    }
+    return response;
   };
 
-  static signNote = (id: string, data: SignNoteDto) => {
-    return apiClient.post(ENDPOINTS.SIGN_NOTE(id), data);
+  static signNote = async (id: string, data: SignNoteDto) => {
+    const response = await apiClient.post(ENDPOINTS.SIGN_NOTE(id), data);
+    if (response.success && response.data) {
+      store.dispatch(updateNoteInStore(response.data));
+    }
+    return response;
+  };
+
+  static getNotesForVisit = async (visitId: string) => {
+    const response = await apiClient.get(`patients/visits/${visitId}/notes`);
+    if (response.success && response.data) {
+      store.dispatch(setNotes(response.data));
+    }
+    return response;
   };
 
   // Physiotherapist Profile

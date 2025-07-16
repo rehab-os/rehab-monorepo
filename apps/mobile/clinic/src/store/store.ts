@@ -1,6 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authSlice, organizationSlice, clinicSlice, userSlice } from './slices';
 import patientReducer from './slices/patientSlice';
+import visitReducer from './slices/visitSlice';
+import noteReducer from './slices/noteSlice';
 
 export const store = configureStore({
   reducer: {
@@ -9,6 +11,8 @@ export const store = configureStore({
     clinic: clinicSlice.reducer,
     user: userSlice.reducer,
     patient: patientReducer,
+    visit: visitReducer,
+    note: noteReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

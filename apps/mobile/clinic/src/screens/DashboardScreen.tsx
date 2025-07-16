@@ -286,6 +286,9 @@ export const DashboardScreen = () => {
             case 'Patients':
               navigation.navigate('Patients');
               break;
+            case 'Appointments':
+              navigation.navigate('Appointments');
+              break;
             case 'Dashboard':
               // Already on dashboard
               break;

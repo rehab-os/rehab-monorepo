@@ -17,6 +17,9 @@ import { LoginScreen } from '../screens/auth/LoginScreen';
 import { OTPVerificationScreen } from '../screens/auth/OTPVerificationScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import PatientsScreen from '../screens/PatientsScreen';
+import PatientDetailsScreen from '../screens/PatientDetailsScreen';
+import AppointmentsScreen from '../screens/AppointmentsScreen';
+import NotesScreen from '../screens/NotesScreen';
 
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
@@ -45,6 +48,9 @@ function MainStack() {
     >
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="Patients" component={PatientsScreen} />
+      <Stack.Screen name="PatientDetails" component={PatientDetailsScreen} />
+      <Stack.Screen name="Appointments" component={AppointmentsScreen} />
+      <Stack.Screen name="VisitNotes" component={NotesScreen} />
       {/* Add more screens here as needed */}
     </Stack.Navigator>
   );
