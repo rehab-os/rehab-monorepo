@@ -106,10 +106,10 @@ export default function Dashboard() {
 
   const getColorClasses = (color: string, type: 'bg' | 'text' = 'bg') => {
     const colors = {
-      blue: type === 'bg' ? 'bg-blue-100' : 'text-blue-600',
-      purple: type === 'bg' ? 'bg-purple-100' : 'text-purple-600',
-      green: type === 'bg' ? 'bg-green-100' : 'text-green-600',
-      orange: type === 'bg' ? 'bg-orange-100' : 'text-orange-600',
+      blue: type === 'bg' ? 'bg-healui-primary/10' : 'text-healui-primary',
+      purple: type === 'bg' ? 'bg-healui-accent/10' : 'text-healui-accent',
+      green: type === 'bg' ? 'bg-healui-physio/10' : 'text-healui-physio',
+      orange: type === 'bg' ? 'bg-healui-secondary/10' : 'text-healui-secondary',
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -117,12 +117,12 @@ export default function Dashboard() {
   if (!currentClinic && !userData?.organization?.is_owner) {
     return (
       <div className="max-w-2xl mx-auto py-12">
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="h-8 w-8 text-gray-400" />
+        <div className="card-base text-center">
+          <div className="w-16 h-16 bg-healui-physio/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="h-8 w-8 text-healui-physio" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Clinic Selected</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-xl font-display font-semibold text-text-dark mb-3">No Clinic Selected</h2>
+          <p className="text-text-gray mb-6">
             Please select a clinic from the context switcher in the header to view the dashboard.
           </p>
         </div>
@@ -133,11 +133,11 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Welcome back, {userData?.name?.split(' ')[0] || 'User'}!
+      <div className="mb-8">
+        <h1 className="text-3xl font-display font-bold text-text-dark mb-2">
+          Welcome back, {userData?.name?.split(' ')[0] || 'User'}! 👋
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-text-gray text-lg">
           {currentClinic ? `${currentClinic.name} Dashboard` : 'Organization Overview'}
         </p>
       </div>
@@ -145,13 +145,13 @@ export default function Dashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat) => (
-          <div key={stat.title} className="bg-white rounded-lg border border-gray-200 p-6">
+          <div key={stat.title} className="card-base hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
-              <div className={`p-2 ${getColorClasses(stat.color)} rounded-lg`}>
+              <div className={`p-3 ${getColorClasses(stat.color)} rounded-lg`}>
                 <stat.icon className={`h-6 w-6 ${getColorClasses(stat.color, 'text')}`} />
               </div>
-              <span className={`text-sm flex items-center ${
-                stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+              <span className={`text-sm font-medium flex items-center ${
+                stat.trend === 'up' ? 'text-healui-physio' : 'text-red-500'
               }`}>
                 {stat.trend === 'up' ? (
                   <ArrowUp className="h-4 w-4 mr-1" />
@@ -161,8 +161,8 @@ export default function Dashboard() {
                 {stat.change}
               </span>
             </div>
-            <h3 className="text-2xl font-semibold text-gray-900">{stat.value}</h3>
-            <p className="text-sm text-gray-600 mt-1">{stat.title}</p>
+            <h3 className="text-3xl font-display font-bold text-text-dark">{stat.value}</h3>
+            <p className="text-sm text-text-gray mt-2 font-medium">{stat.title}</p>
           </div>
         ))}
       </div>
@@ -170,38 +170,38 @@ export default function Dashboard() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upcoming Appointments */}
-        <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="lg:col-span-2 card-base p-0">
+          <div className="px-6 py-4 border-b border-border-color">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium text-gray-900">Today's Appointments</h2>
-              <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
+              <h2 className="text-xl font-display font-semibold text-text-dark">Today's Appointments</h2>
+              <button className="text-sm text-healui-physio hover:text-healui-primary font-medium flex items-center transition-colors">
                 View All
                 <ChevronRight className="h-4 w-4 ml-1" />
               </button>
             </div>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-border-color">
             {upcomingAppointments.map((appointment) => (
-              <div key={appointment.id} className="px-6 py-4 hover:bg-gray-50">
+              <div key={appointment.id} className="px-6 py-4 hover:bg-healui-physio/5 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
+                    <div className="h-10 w-10 rounded-full bg-gradient-physio flex items-center justify-center text-sm font-semibold text-white">
                       {appointment.patient.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{appointment.patient}</p>
-                      <p className="text-sm text-gray-600">{appointment.type}</p>
+                      <p className="text-sm font-semibold text-text-dark">{appointment.patient}</p>
+                      <p className="text-sm text-text-gray">{appointment.type}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{appointment.time}</p>
+                    <p className="text-sm font-semibold text-text-dark">{appointment.time}</p>
                     <div className="flex items-center justify-end space-x-2 mt-1">
-                      <Clock className="h-3 w-3 text-gray-400" />
-                      <span className="text-xs text-gray-500">{appointment.duration}</span>
+                      <Clock className="h-3 w-3 text-text-light" />
+                      <span className="text-xs text-text-gray">{appointment.duration}</span>
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         appointment.status === 'confirmed' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-healui-physio/20 text-healui-physio' 
+                          : 'bg-healui-secondary/20 text-healui-secondary'
                       }`}>
                         {appointment.status}
                       </span>
@@ -214,21 +214,21 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activities */}
-        <div className="bg-white rounded-lg border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Recent Activities</h2>
+        <div className="card-base p-0">
+          <div className="px-6 py-4 border-b border-border-color">
+            <h2 className="text-xl font-display font-semibold text-text-dark">Recent Activities</h2>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-border-color">
             {recentActivities.map((activity) => (
-              <div key={activity.id} className="px-6 py-4">
+              <div key={activity.id} className="px-6 py-4 hover:bg-healui-physio/5 transition-colors">
                 <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <activity.icon className="h-4 w-4 text-gray-600" />
+                  <div className="p-2 bg-healui-physio/10 rounded-lg">
+                    <activity.icon className="h-4 w-4 text-healui-physio" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                    <p className="text-xs text-gray-500 mt-2">{activity.time}</p>
+                    <p className="text-sm font-semibold text-text-dark">{activity.action}</p>
+                    <p className="text-sm text-text-gray mt-1">{activity.description}</p>
+                    <p className="text-xs text-text-light mt-2">{activity.time}</p>
                   </div>
                 </div>
               </div>
@@ -238,11 +238,12 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 text-white">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-physio rounded-lg p-8 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-healui-physio/20 to-healui-primary/20 backdrop-blur-sm"></div>
+        <div className="relative flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Quick Actions</h3>
-            <p className="text-blue-100">
+            <h3 className="text-xl font-display font-bold mb-2">Quick Actions ⚡</h3>
+            <p className="text-white/90 text-base">
               {currentClinic 
                 ? 'Manage your clinic operations efficiently' 
                 : 'Manage your organization and clinics'
@@ -252,19 +253,19 @@ export default function Dashboard() {
           <div className="flex space-x-3">
             {currentClinic ? (
               <>
-                <button className="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+                <button className="btn-primary bg-white text-healui-physio hover:bg-gray-50 px-6 py-3">
                   New Patient
                 </button>
-                <button className="bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/20 transition-colors">
+                <button className="btn-secondary bg-white/10 text-white border-white/20 hover:bg-white/20 px-6 py-3">
                   Schedule Appointment
                 </button>
               </>
             ) : (
               <>
-                <button className="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors">
+                <button className="btn-primary bg-white text-healui-physio hover:bg-gray-50 px-6 py-3">
                   Add Clinic
                 </button>
-                <button className="bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/20 transition-colors">
+                <button className="btn-secondary bg-white/10 text-white border-white/20 hover:bg-white/20 px-6 py-3">
                   Invite Staff
                 </button>
               </>

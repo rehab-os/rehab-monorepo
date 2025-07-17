@@ -164,55 +164,55 @@ export default function Login() {
   // Show loading spinner if checking auth
   if (isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-bg-light">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
-          <p className="mt-2 text-gray-600">Redirecting to dashboard...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-healui-physio mx-auto" />
+          <p className="mt-2 text-text-gray font-medium">Redirecting to dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-healui-physio/5 via-white to-healui-primary/5 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-healui-physio rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-healui-primary rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-healui-accent rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000"></div>
       </div>
 
       <div className="relative min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-8">
+          <div className="glass rounded-2xl shadow-xl border border-border-color p-8">
             {/* Logo and Title */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mb-4">
-                <Sparkles className="h-8 w-8 text-white" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-physio rounded-full mb-4 shadow-physio">
+                <span className="text-2xl">🏃</span>
               </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                RehabOS
+              <h1 className="text-3xl font-display font-bold gradient-text">
+                Healui.ai
               </h1>
-              <p className="text-gray-600 mt-2">Clinical Management Platform</p>
+              <p className="text-text-gray mt-2 font-medium">Transforming physiotherapy care through AI</p>
             </div>
 
             {/* Phone Number Form */}
             {!otpSent ? (
               <form onSubmit={handleSendOTP} className="space-y-6">
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="phone" className="block text-sm font-medium text-text-dark mb-2">
                     Phone Number
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
+                      <Phone className="h-5 w-5 text-text-light" />
                     </div>
                     <input
                       type="tel"
                       id="phone"
                       value={phone}
                       onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
-                      className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                      className="w-full pl-10 pr-3 py-3 border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio transition-all duration-200 text-lg bg-white"
                       placeholder="+91 98765 43210"
                       disabled={loading}
                       maxLength={13}
@@ -221,7 +221,7 @@ export default function Login() {
                   {error && (
                     <div className="mt-2 flex items-center space-x-1 text-red-600">
                       <AlertCircle className="h-4 w-4" />
-                      <p className="text-sm">{error}</p>
+                      <p className="text-sm font-medium">{error}</p>
                     </div>
                   )}
                 </div>
@@ -229,7 +229,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium text-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary w-full py-3 px-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center">
@@ -241,11 +241,11 @@ export default function Login() {
                   )}
                 </button>
 
-                <p className="text-center text-sm text-gray-500">
+                <p className="text-center text-sm text-text-light">
                   By continuing, you agree to our{' '}
-                  <a href="#" className="text-blue-600 hover:text-blue-700">Terms of Service</a>
+                  <a href="#" className="text-healui-physio hover:text-healui-primary font-medium">Terms of Service</a>
                   {' '}and{' '}
-                  <a href="#" className="text-blue-600 hover:text-blue-700">Privacy Policy</a>
+                  <a href="#" className="text-healui-physio hover:text-healui-primary font-medium">Privacy Policy</a>
                 </p>
               </form>
             ) : (
@@ -253,16 +253,16 @@ export default function Login() {
               <div className="space-y-6">
                 <button
                   onClick={handleResendOTP}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  className="flex items-center space-x-2 text-text-gray hover:text-text-dark transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  <span className="text-sm">Change phone number</span>
+                  <span className="text-sm font-medium">Change phone number</span>
                 </button>
 
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-6 text-center">
-                  <ShieldCheck className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Enter verification code</h2>
-                  <p className="text-sm text-gray-600">
+                <div className="bg-gradient-to-br from-healui-physio/10 to-healui-primary/10 rounded-lg p-6 text-center border border-healui-physio/20">
+                  <ShieldCheck className="h-12 w-12 text-healui-physio mx-auto mb-4" />
+                  <h2 className="text-lg font-display font-semibold text-text-dark mb-2">Enter verification code</h2>
+                  <p className="text-sm text-text-gray">
                     We've sent a 6-digit code to {phone}
                   </p>
                 </div>
@@ -278,7 +278,7 @@ export default function Login() {
                         value={digit}
                         onChange={(e) => handleOtpChange(index, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                        className="w-12 h-14 text-center text-xl font-semibold border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-12 h-14 text-center text-xl font-semibold border-2 border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio transition-all duration-200 bg-white"
                         disabled={otpVerifying}
                       />
                     ))}
@@ -286,7 +286,7 @@ export default function Login() {
                   {error && (
                     <div className="mt-3 flex items-center justify-center space-x-1 text-red-600">
                       <AlertCircle className="h-4 w-4" />
-                      <p className="text-sm">{error}</p>
+                      <p className="text-sm font-medium">{error}</p>
                     </div>
                   )}
                 </div>
@@ -294,7 +294,7 @@ export default function Login() {
                 <button
                   onClick={() => handleVerifyOTP()}
                   disabled={otpVerifying || otp.some(digit => !digit)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium text-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary w-full py-3 px-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {otpVerifying ? (
                     <span className="flex items-center justify-center">
@@ -307,12 +307,12 @@ export default function Login() {
                 </button>
 
                 <div className="text-center">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-text-gray">
                     Didn't receive the code?{' '}
                     <button
                       onClick={handleSendOTP}
                       disabled={loading}
-                      className="text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-healui-physio hover:text-healui-primary font-medium"
                     >
                       Resend OTP
                     </button>

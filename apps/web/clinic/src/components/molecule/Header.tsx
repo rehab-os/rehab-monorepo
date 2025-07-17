@@ -66,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
   const isPhysiotherapist = currentClinic?.role === 'physiotherapist';
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <header className="glass border-b border-border-color sticky top-0 z-40 shadow-sm">
       <div className="px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Left Section */}
@@ -74,13 +74,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
             {/* Mobile Menu Toggle */}
             <button
               onClick={onMenuToggle}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors lg:hidden"
+              className="p-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 lg:hidden"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? (
-                <X className="h-5 w-5 text-gray-600" />
+                <X className="h-5 w-5 text-text-gray" />
               ) : (
-                <Menu className="h-5 w-5 text-gray-600" />
+                <Menu className="h-5 w-5 text-text-gray" />
               )}
             </button>
 
@@ -90,11 +90,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
             {/* Search Bar - Hidden on mobile */}
             <div className="hidden md:block">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-light" />
                 <input
                   type="text"
                   placeholder="Search patients, appointments..."
-                  className="w-64 lg:w-80 pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-64 lg:w-80 pl-10 pr-3 py-2.5 border border-border-color rounded-lg 
+                           focus:outline-none focus:ring-2 focus:ring-healui-physio focus:border-healui-physio 
+                           transition-all duration-200 bg-white/80 backdrop-blur-sm"
                 />
               </div>
             </div>
@@ -103,19 +105,19 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
           {/* Right Section */}
           <div className="flex items-center space-x-3">
             {/* Search Icon - Mobile Only */}
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors md:hidden">
-              <Search className="h-5 w-5 text-gray-600" />
+            <button className="p-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 md:hidden">
+              <Search className="h-5 w-5 text-text-gray" />
             </button>
 
             {/* Notifications */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+                className="p-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 relative"
               >
-                <Bell className="h-5 w-5 text-gray-600" />
+                <Bell className="h-5 w-5 text-text-gray" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  <span className="absolute top-0 right-0 h-5 w-5 bg-gradient-physio text-white text-xs rounded-full flex items-center justify-center font-medium shadow-physio">
                     {unreadCount}
                   </span>
                 )}
@@ -123,44 +125,44 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200">
-                  <div className="p-4 border-b border-gray-200">
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-border-color">
+                  <div className="p-4 border-b border-border-color">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium text-gray-900">Notifications</h3>
-                      <button className="text-sm text-blue-600 hover:text-blue-700">
+                      <h3 className="font-semibold text-text-dark">Notifications</h3>
+                      <button className="text-sm text-healui-physio hover:text-healui-primary font-medium">
                         Mark all as read
                       </button>
                     </div>
                   </div>
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-96 overflow-y-auto custom-scrollbar">
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                          notification.unread ? 'bg-blue-50' : ''
+                        className={`p-4 border-b border-border-color hover:bg-healui-physio/5 cursor-pointer transition-colors ${
+                          notification.unread ? 'bg-healui-physio/10' : ''
                         }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-semibold text-text-dark">
                               {notification.title}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-text-gray mt-1">
                               {notification.message}
                             </p>
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className="text-xs text-text-light mt-2">
                               {notification.time}
                             </p>
                           </div>
                           {notification.unread && (
-                            <span className="h-2 w-2 bg-blue-600 rounded-full mt-1.5"></span>
+                            <span className="h-2 w-2 bg-healui-physio rounded-full mt-1.5"></span>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="p-3 text-center border-t border-gray-200">
-                    <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  <div className="p-3 text-center border-t border-border-color">
+                    <button className="text-sm text-healui-physio hover:text-healui-primary font-medium">
                       View all notifications
                     </button>
                   </div>
@@ -172,20 +174,20 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200"
               >
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
+                <div className="h-8 w-8 rounded-full bg-gradient-physio flex items-center justify-center text-white font-semibold text-sm shadow-sm">
                   {userData?.name?.split(' ').map(n => n[0]).join('') || 'U'}
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-text-light" />
               </button>
 
               {/* User Dropdown */}
               {showUserMenu && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200">
-                  <div className="p-4 border-b border-gray-200">
-                    <p className="text-sm font-medium text-gray-900">{userData?.name}</p>
-                    <p className="text-xs text-gray-500 mt-1">
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-xl border border-border-color">
+                  <div className="p-4 border-b border-border-color">
+                    <p className="text-sm font-semibold text-text-dark">{userData?.name}</p>
+                    <p className="text-xs text-text-light mt-1">
                       {userData?.organization?.name}
                     </p>
                   </div>
@@ -196,29 +198,29 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
                           setShowUserMenu(false);
                           router.push('/dashboard/profile');
                         }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 text-left"
                       >
-                        <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-700">Profile</span>
+                        <User className="h-4 w-4 text-text-light" />
+                        <span className="text-sm text-text-gray">Profile</span>
                       </button>
                     ) : (
-                      <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                        <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-700">Profile</span>
+                      <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 text-left">
+                        <User className="h-4 w-4 text-text-light" />
+                        <span className="text-sm text-text-gray">Profile</span>
                       </button>
                     )}
-                    <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                      <Settings className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-700">Settings</span>
+                    <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 text-left">
+                      <Settings className="h-4 w-4 text-text-light" />
+                      <span className="text-sm text-text-gray">Settings</span>
                     </button>
-                    <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left">
-                      <HelpCircle className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-700">Help & Support</span>
+                    <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 text-left">
+                      <HelpCircle className="h-4 w-4 text-text-light" />
+                      <span className="text-sm text-text-gray">Help & Support</span>
                     </button>
-                    <div className="my-2 border-t border-gray-100"></div>
+                    <div className="my-2 border-t border-border-color"></div>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left text-red-600"
+                      className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-red-50 transition-all duration-200 text-left text-red-600"
                     >
                       <LogOut className="h-4 w-4" />
                       <span className="text-sm">Logout</span>

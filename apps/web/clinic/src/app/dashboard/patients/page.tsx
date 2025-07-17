@@ -141,10 +141,10 @@ export default function PatientsPage() {
   if (!currentClinic) {
     return (
       <div className="max-w-2xl mx-auto py-12">
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Clinic Selected</h2>
-          <p className="text-gray-600">
+        <div className="card-base text-center">
+          <AlertCircle className="h-16 w-16 text-healui-physio/50 mx-auto mb-4" />
+          <h2 className="text-xl font-display font-semibold text-text-dark mb-2">No Clinic Selected</h2>
+          <p className="text-text-gray">
             Please select a clinic from the header to manage patients.
           </p>
         </div>
@@ -157,40 +157,40 @@ export default function PatientsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Patients</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-display font-bold text-text-dark">Patients 👥</h1>
+          <p className="text-text-gray mt-1 text-lg">
             Manage patient records and appointments
           </p>
         </div>
         <button
           onClick={handleAddPatient}
-          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+          className="btn-primary inline-flex items-center px-6 py-3"
         >
-          <UserPlus className="h-4 w-4 mr-2" />
+          <UserPlus className="h-5 w-5 mr-2" />
           Add Patient
         </button>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="card-base">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-light" />
                 <input
                   type="text"
                   placeholder="Search by name, phone, or patient code..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-3 py-2.5 border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio transition-all duration-200 bg-white"
                 />
               </div>
               <button
                 onClick={handleSearch}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="btn-primary px-6 py-2.5"
               >
                 Search
               </button>
@@ -242,52 +242,52 @@ export default function PatientsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="card-base hover:shadow-xl transition-all duration-300">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Users className="h-6 w-6 text-purple-600" />
+            <div className="p-3 bg-healui-physio/20 rounded-lg">
+              <Users className="h-6 w-6 text-healui-physio" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Patients</p>
-              <p className="text-2xl font-semibold text-gray-900">{patientsData.total}</p>
+              <p className="text-sm font-medium text-text-light">Total Patients</p>
+              <p className="text-2xl font-display font-bold text-text-dark">{patientsData.total}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="card-base hover:shadow-xl transition-all duration-300">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Activity className="h-6 w-6 text-green-600" />
+            <div className="p-3 bg-healui-physio/20 rounded-lg">
+              <Activity className="h-6 w-6 text-healui-physio" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Patients</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-text-light">Active Patients</p>
+              <p className="text-2xl font-display font-bold text-text-dark">
                 {patientsData.patients.filter(p => p.status === 'ACTIVE').length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="card-base hover:shadow-xl transition-all duration-300">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Calendar className="h-6 w-6 text-blue-600" />
+            <div className="p-3 bg-healui-primary/20 rounded-lg">
+              <Calendar className="h-6 w-6 text-healui-primary" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Today's Visits</p>
-              <p className="text-2xl font-semibold text-gray-900">0</p>
+              <p className="text-sm font-medium text-text-light">Today's Visits</p>
+              <p className="text-2xl font-display font-bold text-text-dark">0</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="card-base hover:shadow-xl transition-all duration-300">
           <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <FileCheck className="h-6 w-6 text-orange-600" />
+            <div className="p-3 bg-healui-secondary/20 rounded-lg">
+              <FileCheck className="h-6 w-6 text-healui-secondary" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending Notes</p>
-              <p className="text-2xl font-semibold text-gray-900">0</p>
+              <p className="text-sm font-medium text-text-light">Pending Notes</p>
+              <p className="text-2xl font-display font-bold text-text-dark">0</p>
             </div>
           </div>
         </div>
@@ -296,15 +296,15 @@ export default function PatientsPage() {
       {/* Patients List/Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-healui-physio"></div>
         </div>
       ) : patientsData.patients.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <UserPlus className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="card-base text-center">
+          <UserPlus className="h-16 w-16 text-healui-physio/50 mx-auto mb-4" />
+          <h3 className="text-lg font-display font-semibold text-text-dark mb-2">
             {searchTerm || statusFilter !== 'all' ? 'No patients found' : 'No patients yet'}
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-text-gray mb-6">
             {searchTerm || statusFilter !== 'all'
               ? 'Try adjusting your search terms or filters' 
               : 'Get started by adding your first patient'
@@ -313,7 +313,7 @@ export default function PatientsPage() {
           {!searchTerm && statusFilter === 'all' && (
             <button
               onClick={handleAddPatient}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="btn-primary inline-flex items-center px-6 py-3"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Add Your First Patient
@@ -426,33 +426,33 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, viewMode, onView, on
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
+        return 'bg-healui-physio/20 text-healui-physio border-healui-physio/30 border';
       case 'INACTIVE':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200 border';
       case 'DISCHARGED':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-healui-primary/20 text-healui-primary border-healui-primary/30 border';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200 border';
     }
   };
 
   if (viewMode === 'list') {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div className="card-base hover:shadow-xl transition-all duration-300">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 flex-1">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+            <div className="h-12 w-12 rounded-full bg-gradient-physio flex items-center justify-center text-white font-semibold shadow-sm">
               {patient.full_name.split(' ').map(n => n[0]).join('')}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-1">
-                <h3 className="text-lg font-medium text-gray-900 truncate">{patient.full_name}</h3>
-                <span className="text-sm text-gray-500">({patient.patient_code})</span>
+                <h3 className="text-lg font-display font-semibold text-text-dark truncate">{patient.full_name}</h3>
+                <span className="text-sm text-text-light font-medium">({patient.patient_code})</span>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(patient.status)}`}>
                   {patient.status}
                 </span>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
+              <div className="flex items-center space-x-4 text-sm text-text-gray">
                 <span className="flex items-center">
                   <Phone className="h-4 w-4 mr-1" />
                   {patient.phone}
@@ -473,14 +473,14 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, viewMode, onView, on
           <div className="flex items-center space-x-2">
             <button
               onClick={onView}
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="p-2 text-text-gray hover:text-text-dark transition-colors"
               title="View Details"
             >
               <Eye className="h-4 w-4" />
             </button>
             <button
               onClick={onSchedule}
-              className="p-2 text-blue-600 hover:text-blue-700 transition-colors"
+              className="p-2 text-healui-physio hover:text-healui-primary transition-colors"
               title="Schedule Visit"
             >
               <CalendarPlus className="h-4 w-4" />
@@ -514,10 +514,10 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, viewMode, onView, on
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+    <div className="card-base hover:shadow-xl transition-all duration-300 overflow-hidden">
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+          <div className="h-12 w-12 rounded-full bg-gradient-physio flex items-center justify-center text-white font-semibold shadow-sm">
             {patient.full_name.split(' ').map(n => n[0]).join('')}
           </div>
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(patient.status)}`}>
@@ -526,44 +526,44 @@ const PatientCard: React.FC<PatientCardProps> = ({ patient, viewMode, onView, on
         </div>
 
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">{patient.full_name}</h3>
-          <p className="text-sm text-gray-500">{patient.patient_code}</p>
+          <h3 className="text-lg font-display font-semibold text-text-dark mb-1">{patient.full_name}</h3>
+          <p className="text-sm text-text-light font-medium">{patient.patient_code}</p>
         </div>
 
         <div className="space-y-2 mb-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <Phone className="h-4 w-4 mr-2 text-gray-400" />
+          <div className="flex items-center text-sm text-text-gray">
+            <Phone className="h-4 w-4 mr-2 text-text-light" />
             <span>{patient.phone}</span>
           </div>
           {patient.email && (
-            <div className="flex items-center text-sm text-gray-600">
-              <Mail className="h-4 w-4 mr-2 text-gray-400" />
+            <div className="flex items-center text-sm text-text-gray">
+              <Mail className="h-4 w-4 mr-2 text-text-light" />
               <span className="truncate">{patient.email}</span>
             </div>
           )}
-          <div className="flex items-center text-sm text-gray-600">
-            <Clock className="h-4 w-4 mr-2 text-gray-400" />
+          <div className="flex items-center text-sm text-text-gray">
+            <Clock className="h-4 w-4 mr-2 text-text-light" />
             <span>{calculateAge(patient.date_of_birth)} years, {patient.gender}</span>
           </div>
           {patient.address && (
-            <div className="flex items-center text-sm text-gray-600">
-              <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+            <div className="flex items-center text-sm text-text-gray">
+              <MapPin className="h-4 w-4 mr-2 text-text-light" />
               <span className="truncate">{patient.address}</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-4 border-t border-border-color">
           <button
             onClick={onView}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-healui-physio hover:text-healui-primary font-medium"
           >
             View Details
           </button>
           <div className="flex items-center space-x-2">
             <button
               onClick={onSchedule}
-              className="p-2 text-blue-600 hover:text-blue-700 transition-colors"
+              className="p-2 text-healui-physio hover:text-healui-primary transition-colors"
               title="Schedule Visit"
             >
               <CalendarPlus className="h-4 w-4" />

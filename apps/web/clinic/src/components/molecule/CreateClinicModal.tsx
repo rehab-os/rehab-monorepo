@@ -230,23 +230,23 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="glass rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-border-color">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="px-6 py-4 border-b border-border-color bg-gradient-physio">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-white/20 rounded-lg">
                 <Building2 className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-white">Create New Clinic</h2>
-                <p className="text-blue-100">Add a new clinic location to your organization</p>
+                <h2 className="text-xl font-display font-bold text-white">Create New Clinic 🏥</h2>
+                <p className="text-white/90 font-medium">Add a new clinic location to your organization</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all duration-200"
             >
               <X className="h-5 w-5" />
             </button>
@@ -594,7 +594,7 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
                           value={hours.open}
                           onChange={(e) => updateWorkingHours(day, 'open', e.target.value)}
                           disabled={!hours.is_open}
-                          className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                          className="px-3 py-1 border border-border-color rounded text-sm focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio disabled:bg-gray-100 transition-all duration-200 bg-white"
                         />
                         <span className="text-gray-500">to</span>
                         <input
@@ -602,7 +602,7 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
                           value={hours.close}
                           onChange={(e) => updateWorkingHours(day, 'close', e.target.value)}
                           disabled={!hours.is_open}
-                          className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                          className="px-3 py-1 border border-border-color rounded text-sm focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio disabled:bg-gray-100 transition-all duration-200 bg-white"
                         />
                       </div>
                       {!hours.is_open && (
@@ -627,11 +627,11 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-border-color bg-gray-50">
           <div className="flex items-center justify-between">
             <button
               onClick={currentStep === 1 ? onClose : handleBack}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="btn-secondary px-6 py-2.5"
             >
               {currentStep === 1 ? 'Cancel' : 'Back'}
             </button>
@@ -640,7 +640,7 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
               {currentStep < 3 ? (
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="btn-primary px-6 py-2.5"
                 >
                   Next Step
                 </button>
@@ -648,7 +648,7 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  className="btn-primary px-6 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
                   {loading ? (
                     <>

@@ -81,43 +81,43 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
+        return 'bg-healui-physio/20 text-healui-physio border-healui-physio/30 border';
       case 'INACTIVE':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200 border';
       case 'DISCHARGED':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-healui-primary/20 text-healui-primary border-healui-primary/30 border';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200 border';
     }
   };
 
   const getVisitStatusColor = (status: string) => {
     switch (status) {
       case 'SCHEDULED':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-healui-primary/20 text-healui-primary border-healui-primary/30 border';
       case 'IN_PROGRESS':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-healui-accent/20 text-healui-accent border-healui-accent/30 border';
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800';
+        return 'bg-healui-physio/20 text-healui-physio border-healui-physio/30 border';
       case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 border-red-200 border';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200 border';
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="glass rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-xl border border-border-color">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-border-color flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+            <div className="h-12 w-12 rounded-full bg-gradient-physio flex items-center justify-center text-white font-semibold shadow-physio">
               {patient.full_name.split(' ').map(n => n[0]).join('')}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">{patient.full_name}</h2>
-              <p className="text-sm text-gray-500">{patient.patient_code}</p>
+              <h2 className="text-xl font-display font-bold text-text-dark">{patient.full_name}</h2>
+              <p className="text-sm text-text-light font-medium">{patient.patient_code}</p>
             </div>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(patient.status)}`}>
               {patient.status}
@@ -126,49 +126,49 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
           <div className="flex items-center space-x-2">
             <button
               onClick={onScheduleVisit}
-              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="btn-primary inline-flex items-center px-4 py-2.5"
             >
               <CalendarPlus className="h-4 w-4 mr-2" />
               Schedule Visit
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-healui-physio/10 rounded-lg transition-all duration-200"
             >
-              <X className="h-5 w-5 text-gray-500" />
+              <X className="h-5 w-5 text-text-light" />
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-border-color">
           <nav className="flex space-x-8 px-6">
             <button
               onClick={() => setActiveTab('details')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === 'details'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-healui-physio text-healui-physio'
+                  : 'border-transparent text-text-light hover:text-text-dark'
               }`}
             >
               Patient Details
             </button>
             <button
               onClick={() => setActiveTab('visits')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === 'visits'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-healui-physio text-healui-physio'
+                  : 'border-transparent text-text-light hover:text-text-dark'
               }`}
             >
               Visits ({visits.length})
             </button>
             <button
               onClick={() => setActiveTab('notes')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === 'notes'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-healui-physio text-healui-physio'
+                  : 'border-transparent text-text-light hover:text-text-dark'
               }`}
             >
               Clinical Notes
@@ -182,43 +182,43 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
             <div className="space-y-6">
               {/* Personal Information */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                  <User className="h-5 w-5 mr-2 text-gray-400" />
+                <h3 className="text-lg font-display font-semibold text-text-dark mb-4 flex items-center">
+                  <User className="h-5 w-5 mr-2 text-healui-physio" />
                   Personal Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
-                    <p className="mt-1 text-sm text-gray-900">{patient.full_name}</p>
+                    <label className="block text-sm font-medium text-text-dark">Full Name</label>
+                    <p className="mt-1 text-sm text-text-gray font-medium">{patient.full_name}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Patient Code</label>
-                    <p className="mt-1 text-sm text-gray-900">{patient.patient_code}</p>
+                    <label className="block text-sm font-medium text-text-dark">Patient Code</label>
+                    <p className="mt-1 text-sm text-text-gray font-medium">{patient.patient_code}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
-                    <p className="mt-1 text-sm text-gray-900">{patient.phone}</p>
+                    <label className="block text-sm font-medium text-text-dark">Phone</label>
+                    <p className="mt-1 text-sm text-text-gray font-medium">{patient.phone}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <p className="mt-1 text-sm text-gray-900">{patient.email || 'Not provided'}</p>
+                    <label className="block text-sm font-medium text-text-dark">Email</label>
+                    <p className="mt-1 text-sm text-text-gray font-medium">{patient.email || 'Not provided'}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Age & Gender</label>
-                    <p className="mt-1 text-sm text-gray-900">
+                    <label className="block text-sm font-medium text-text-dark">Age & Gender</label>
+                    <p className="mt-1 text-sm text-text-gray font-medium">
                       {calculateAge(patient.date_of_birth)} years, {patient.gender === 'M' ? 'Male' : patient.gender === 'F' ? 'Female' : 'Other'}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
-                    <p className="mt-1 text-sm text-gray-900">
+                    <label className="block text-sm font-medium text-text-dark">Date of Birth</label>
+                    <p className="mt-1 text-sm text-text-gray font-medium">
                       {new Date(patient.date_of_birth).toLocaleDateString()}
                     </p>
                   </div>
                   {patient.address && (
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700">Address</label>
-                      <p className="mt-1 text-sm text-gray-900">{patient.address}</p>
+                      <label className="block text-sm font-medium text-text-dark">Address</label>
+                      <p className="mt-1 text-sm text-text-gray font-medium">{patient.address}</p>
                     </div>
                   )}
                 </div>
@@ -227,18 +227,18 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
               {/* Emergency Contact */}
               {(patient.emergency_contact_name || patient.emergency_contact_phone) && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <Phone className="h-5 w-5 mr-2 text-gray-400" />
+                  <h3 className="text-lg font-display font-semibold text-text-dark mb-4 flex items-center">
+                    <Phone className="h-5 w-5 mr-2 text-healui-physio" />
                     Emergency Contact
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Contact Name</label>
-                      <p className="mt-1 text-sm text-gray-900">{patient.emergency_contact_name || 'Not provided'}</p>
+                      <label className="block text-sm font-medium text-text-dark">Contact Name</label>
+                      <p className="mt-1 text-sm text-text-gray font-medium">{patient.emergency_contact_name || 'Not provided'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Contact Phone</label>
-                      <p className="mt-1 text-sm text-gray-900">{patient.emergency_contact_phone || 'Not provided'}</p>
+                      <label className="block text-sm font-medium text-text-dark">Contact Phone</label>
+                      <p className="mt-1 text-sm text-text-gray font-medium">{patient.emergency_contact_phone || 'Not provided'}</p>
                     </div>
                   </div>
                 </div>
@@ -246,20 +246,20 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
 
               {/* Medical Information */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                  <Heart className="h-5 w-5 mr-2 text-gray-400" />
+                <h3 className="text-lg font-display font-semibold text-text-dark mb-4 flex items-center">
+                  <Heart className="h-5 w-5 mr-2 text-healui-physio" />
                   Medical Information
                 </h3>
                 <div className="space-y-4">
                   {patient.medical_history && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Medical History</label>
-                      <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{patient.medical_history}</p>
+                      <label className="block text-sm font-medium text-text-dark">Medical History</label>
+                      <p className="mt-1 text-sm text-text-gray font-medium whitespace-pre-wrap">{patient.medical_history}</p>
                     </div>
                   )}
                   {patient.allergies && patient.allergies.length > 0 && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Allergies</label>
+                      <label className="block text-sm font-medium text-text-dark">Allergies</label>
                       <div className="mt-1 flex flex-wrap gap-2">
                         {patient.allergies.map((allergy, index) => (
                           <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -271,10 +271,10 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
                   )}
                   {patient.current_medications && patient.current_medications.length > 0 && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Current Medications</label>
+                      <label className="block text-sm font-medium text-text-dark">Current Medications</label>
                       <div className="mt-1 flex flex-wrap gap-2">
                         {patient.current_medications.map((medication, index) => (
-                          <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-healui-primary/20 text-healui-primary border border-healui-primary/30">
                             {medication}
                           </span>
                         ))}
@@ -287,18 +287,18 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
               {/* Insurance Information */}
               {(patient.insurance_provider || patient.insurance_policy_number) && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <Shield className="h-5 w-5 mr-2 text-gray-400" />
+                  <h3 className="text-lg font-display font-semibold text-text-dark mb-4 flex items-center">
+                    <Shield className="h-5 w-5 mr-2 text-healui-physio" />
                     Insurance Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Insurance Provider</label>
-                      <p className="mt-1 text-sm text-gray-900">{patient.insurance_provider || 'Not provided'}</p>
+                      <label className="block text-sm font-medium text-text-dark">Insurance Provider</label>
+                      <p className="mt-1 text-sm text-text-gray font-medium">{patient.insurance_provider || 'Not provided'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Policy Number</label>
-                      <p className="mt-1 text-sm text-gray-900">{patient.insurance_policy_number || 'Not provided'}</p>
+                      <label className="block text-sm font-medium text-text-dark">Policy Number</label>
+                      <p className="mt-1 text-sm text-text-gray font-medium">{patient.insurance_policy_number || 'Not provided'}</p>
                     </div>
                   </div>
                 </div>
@@ -310,16 +310,16 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
             <div className="space-y-4">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-healui-physio"></div>
                 </div>
               ) : visits.length === 0 ? (
                 <div className="text-center py-8">
-                  <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No visits yet</h3>
-                  <p className="text-gray-600 mb-4">Schedule the first visit for this patient</p>
+                  <Calendar className="h-16 w-16 text-healui-physio/50 mx-auto mb-4" />
+                  <h3 className="text-lg font-display font-semibold text-text-dark mb-2">No visits yet</h3>
+                  <p className="text-text-gray mb-4">Schedule the first visit for this patient</p>
                   <button
                     onClick={onScheduleVisit}
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="btn-primary inline-flex items-center px-6 py-3"
                   >
                     <CalendarPlus className="h-4 w-4 mr-2" />
                     Schedule Visit
@@ -328,21 +328,21 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
               ) : (
                 <div className="space-y-3">
                   {visits.map((visit) => (
-                    <div key={visit.id} className="bg-gray-50 rounded-lg p-4">
+                    <div key={visit.id} className="card-base">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
-                          <h4 className="font-medium text-gray-900">{visit.visit_type.replace('_', ' ')}</h4>
+                          <h4 className="font-display font-semibold text-text-dark">{visit.visit_type.replace('_', ' ')}</h4>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getVisitStatusColor(visit.status)}`}>
                             {visit.status}
                           </span>
                         </div>
-                        <div className="flex items-center text-sm text-gray-500">
+                        <div className="flex items-center text-sm text-text-light">
                           <Clock className="h-4 w-4 mr-1" />
                           {new Date(visit.scheduled_date).toLocaleDateString()} at {visit.scheduled_time}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span>Physiotherapist: {visit.physiotherapist.full_name}</span>
+                      <div className="flex items-center justify-between text-sm text-text-gray">
+                        <span className="font-medium">Physiotherapist: {visit.physiotherapist.full_name}</span>
                         {visit.note && (
                           <span className="flex items-center">
                             <FileText className="h-4 w-4 mr-1" />
@@ -360,9 +360,9 @@ const PatientDetailsModal: React.FC<PatientDetailsModalProps> = ({ patient, onCl
           {activeTab === 'notes' && (
             <div className="space-y-4">
               <div className="text-center py-8">
-                <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Clinical Notes</h3>
-                <p className="text-gray-600">Notes will appear here after visits are completed</p>
+                <FileText className="h-16 w-16 text-healui-physio/50 mx-auto mb-4" />
+                <h3 className="text-lg font-display font-semibold text-text-dark mb-2">Clinical Notes</h3>
+                <p className="text-text-gray">Notes will appear here after visits are completed</p>
               </div>
             </div>
           )}
