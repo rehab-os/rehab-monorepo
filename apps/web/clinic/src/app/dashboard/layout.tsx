@@ -16,7 +16,9 @@ import {
   CreditCard,
   BarChart3,
   Heart,
-  UserPlus
+  UserPlus,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -32,6 +34,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { isAuthenticated } = useAppSelector(state => state.auth);
   const { userData, currentClinic } = useAppSelector(state => state.user);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -144,67 +147,123 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         isMenuOpen={isSidebarOpen}
       />
       
-      <div className="flex h-[calc(100vh-60px)]">
+      <div className="flex h-[calc(100vh-60px)] relative">
         {/* Sidebar */}
         <aside className={`
-          fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-border-color transform transition-all duration-300 ease-smooth lg:translate-x-0 lg:static lg:inset-0 shadow-sm
+          fixed inset-y-0 left-0 z-30 bg-white border-r border-border-color transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shadow-sm
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isCollapsed ? 'w-16' : 'w-64'}
         `}>
-          <div className="h-full flex flex-col pt-6 pb-4 overflow-y-auto custom-scrollbar">
-            {/* Brand Logo */}
-            <div className="px-6 mb-8">
-              <div className="flex items-center space-x-2">
-                <div className="bg-gradient-physio p-2 rounded-lg">
-                  <span className="text-white text-lg">🏃</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-display font-bold text-healui-primary">Healui.ai</h1>
-                  <p className="text-xs text-text-light">Clinical Platform</p>
-                </div>
-              </div>
-            </div>
+          {/* Toggle Button - Positioned on the right edge of sidebar */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`
+              hidden lg:flex items-center justify-center w-6 h-8 bg-white border border-border-color rounded-r-lg shadow-sm
+              absolute top-1/2 transform -translate-y-1/2 transition-all duration-300 hover:bg-healui-physio/10 hover:border-healui-physio/30 z-40
+              ${isCollapsed ? 'right-[-12px]' : 'right-[-12px]'}
+            `}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-3 w-3 text-text-light" />
+            ) : (
+              <ChevronLeft className="h-3 w-3 text-text-light" />
+            )}
+          </button>
+          
+          <div className="h-full flex flex-col pt-4 pb-4 overflow-hidden">
 
-            <nav className="flex-1 px-4 space-y-1">
+            <nav className={`flex-1 space-y-1 transition-all duration-300 ${isCollapsed ? 'px-2' : 'px-4'}`}>
               {filteredNavItems.map((item) => {
                 const isActive = pathname === item.href;
                 return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`
-                      group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200
-                      ${isActive 
-                        ? 'bg-gradient-to-r from-healui-physio/10 to-healui-primary/10 text-healui-primary border-r-2 border-healui-physio' 
-                        : 'text-text-gray hover:text-text-dark hover:bg-gray-50'
-                      }
-                    `}
-                  >
-                    <item.icon className={`
-                      mr-3 h-5 w-5 transition-colors
-                      ${isActive ? 'text-healui-physio' : 'text-text-light group-hover:text-text-gray'}
-                    `} />
-                    {item.name}
-                  </Link>
+                  <div key={item.name} className="relative group">
+                    <Link
+                      href={item.href}
+                      className={`
+                        group flex items-center py-3 text-sm font-medium rounded-lg transition-all duration-200 relative
+                        ${isCollapsed ? 'px-3 justify-center' : 'px-4'}
+                        ${isActive 
+                          ? 'bg-gradient-to-r from-healui-physio/10 to-healui-primary/10 text-healui-primary' 
+                          : 'text-text-gray hover:text-text-dark hover:bg-gray-50'
+                        }
+                        ${isActive && !isCollapsed ? 'border-r-2 border-healui-physio' : ''}
+                      `}
+                    >
+                      <item.icon className={`
+                        h-5 w-5 transition-colors flex-shrink-0
+                        ${isCollapsed ? 'mr-0' : 'mr-3'}
+                        ${isActive ? 'text-healui-physio' : 'text-text-light group-hover:text-text-gray'}
+                      `} />
+                      <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${
+                        isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                      }`}>
+                        {item.name}
+                      </span>
+                      
+                      {/* Active indicator for collapsed state */}
+                      {isActive && isCollapsed && (
+                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-healui-physio rounded-l-full"></div>
+                      )}
+                    </Link>
+                    
+                    {/* Tooltip for collapsed state */}
+                    {isCollapsed && (
+                      <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
+                        {item.name}
+                        <div className="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-r-4 border-r-gray-900 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </nav>
 
             {/* Sidebar Footer */}
-            <div className="px-4 py-4 border-t border-border-color">
-              <div className="bg-gray-50 rounded-lg p-3">
+            <div className={`py-4 border-t border-border-color transition-all duration-300 ${isCollapsed ? 'px-2' : 'px-4'}`}>
+              <div className={`bg-gray-50 rounded-lg transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-3'}`}>
                 <div className="text-xs text-text-light">
                   {currentClinic ? (
-                    <div>
-                      <p className="font-semibold text-text-dark text-sm">{currentClinic.name}</p>
-                      <p className="text-healui-physio font-medium">{currentClinic.role}</p>
+                    <div className={`transition-all duration-300 ${isCollapsed ? 'text-center' : ''}`}>
+                      {isCollapsed ? (
+                        <div className="flex items-center justify-center">
+                          <div className="w-8 h-8 bg-healui-physio rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            {currentClinic.name.charAt(0)}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="font-semibold text-text-dark text-sm truncate">{currentClinic.name}</p>
+                          <p className="text-healui-physio font-medium truncate">{currentClinic.role}</p>
+                        </>
+                      )}
                     </div>
                   ) : userData?.organization?.is_owner ? (
-                    <div>
-                      <p className="font-semibold text-text-dark text-sm">{userData.organization.name}</p>
-                      <p className="text-healui-physio font-medium">Organization Admin</p>
+                    <div className={`transition-all duration-300 ${isCollapsed ? 'text-center' : ''}`}>
+                      {isCollapsed ? (
+                        <div className="flex items-center justify-center">
+                          <div className="w-8 h-8 bg-healui-primary rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            {userData.organization.name.charAt(0)}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="font-semibold text-text-dark text-sm truncate">{userData.organization.name}</p>
+                          <p className="text-healui-physio font-medium truncate">Organization Admin</p>
+                        </>
+                      )}
                     </div>
                   ) : (
-                    <p className="text-text-gray">Select a clinic to continue</p>
+                    <div className={`transition-all duration-300 ${isCollapsed ? 'text-center' : ''}`}>
+                      {isCollapsed ? (
+                        <div className="flex items-center justify-center">
+                          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold text-xs">
+                            ?
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-text-gray">Select a clinic to continue</p>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

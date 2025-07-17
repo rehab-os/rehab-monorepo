@@ -163,7 +163,7 @@ export default function SmartNoteInput({
       <div className="space-y-4">
         {fields.map((field) => (
           <div key={field} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 capitalize">
+            <label className="block text-sm font-medium text-text-dark capitalize">
               {field.replace(/([A-Z])/g, ' $1').trim()}
             </label>
             <textarea
@@ -173,7 +173,7 @@ export default function SmartNoteInput({
                 [field]: e.target.value
               })}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full px-3 py-2 border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio text-sm"
               placeholder={`Enter ${field}...`}
             />
           </div>
@@ -183,12 +183,12 @@ export default function SmartNoteInput({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="card-base">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Create Smart Note</h3>
+        <h3 className="text-lg font-display font-semibold text-text-dark">Create Smart Note</h3>
         <button
           onClick={onCancel}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-text-light hover:text-text-gray transition-all duration-200"
         >
           <X className="h-5 w-5" />
         </button>
@@ -205,20 +205,20 @@ export default function SmartNoteInput({
         <>
           {/* Note Type Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">Note Type</label>
+            <label className="block text-sm font-medium text-text-dark mb-3">Note Type</label>
             <div className="grid grid-cols-3 gap-2">
               {(['SOAP', 'BAP', 'Progress'] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => setNoteType(type)}
-                  className={`p-3 border rounded-lg transition-colors ${
+                  className={`p-3 border rounded-lg transition-all duration-200 ${
                     noteType === type
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-healui-physio bg-healui-physio/10 text-healui-physio'
+                      : 'border-border-color hover:border-border-color'
                   }`}
                 >
                   <div className="font-medium">{type === 'Progress' ? 'Progress Note' : type}</div>
-                  <div className="text-xs mt-1 text-gray-500">
+                  <div className="text-xs mt-1 text-text-light">
                     {type === 'SOAP' && 'Subjective, Objective, Assessment, Plan'}
                     {type === 'BAP' && 'Behavior, Assessment, Plan'}
                     {type === 'Progress' && 'Progress documentation'}
@@ -232,10 +232,10 @@ export default function SmartNoteInput({
           <div className="flex space-x-2 mb-6">
             <button
               onClick={() => setInputMode('text')}
-              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
                 inputMode === 'text'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-healui-primary text-white'
+                  : 'bg-gray-100 text-text-dark hover:bg-healui-physio/10'
               }`}
             >
               <FileText className="h-4 w-4" />
@@ -243,10 +243,10 @@ export default function SmartNoteInput({
             </button>
             <button
               onClick={() => setInputMode('audio')}
-              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
                 inputMode === 'audio'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-healui-primary text-white'
+                  : 'bg-gray-100 text-text-dark hover:bg-healui-physio/10'
               }`}
             >
               <Mic className="h-4 w-4" />
@@ -258,17 +258,17 @@ export default function SmartNoteInput({
           {inputMode === 'text' ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-dark mb-2">
                   Describe the visit (any format)
                 </label>
                 <textarea
                   value={roughText}
                   onChange={(e) => setRoughText(e.target.value)}
                   rows={8}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio text-sm"
                   placeholder="Type or paste your notes here in any format. You can include patient complaints, observations, treatments provided, and plans. Our AI will structure it into the selected note format."
                 />
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-text-light">
                   Write naturally - include symptoms, findings, assessments, and treatment plans in any order.
                 </p>
               </div>
@@ -276,7 +276,7 @@ export default function SmartNoteInput({
               <button
                 onClick={() => generateSmartNote()}
                 disabled={!roughText.trim() || isProcessing}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-healui-primary text-white rounded-lg hover:bg-healui-physio transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isProcessing ? (
                   <>
@@ -306,22 +306,22 @@ export default function SmartNoteInput({
       {inputMode === 'review' && generatedNote && (
         <div className="space-y-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-gray-900">Review Generated Note</h4>
+            <h4 className="text-lg font-medium text-text-dark">Review Generated Note</h4>
             <button
               onClick={resetForm}
-              className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800"
+              className="flex items-center space-x-1 text-sm text-text-gray hover:text-text-dark"
             >
               <RotateCcw className="h-4 w-4" />
               <span>Start Over</span>
             </button>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-healui-physio/10 border border-healui-primary/30 rounded-lg p-4">
             <div className="flex items-start space-x-2">
-              <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+              <CheckCircle className="h-5 w-5 text-healui-primary mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-900">AI-Generated {noteType} Note</p>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-sm font-medium text-healui-primary">AI-Generated {noteType} Note</p>
+                <p className="text-xs text-healui-physio mt-1">
                   Review and edit the generated note before saving. You are responsible for accuracy.
                 </p>
               </div>
@@ -334,7 +334,7 @@ export default function SmartNoteInput({
           <div className="border-t pt-4">
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800"
+              className="flex items-center space-x-2 text-sm text-text-gray hover:text-text-dark"
             >
               {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               <span>Additional Notes & Options</span>
@@ -343,14 +343,14 @@ export default function SmartNoteInput({
             {showAdvanced && (
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-dark mb-2">
                     Additional Notes
                   </label>
                   <textarea
                     value={additionalNotes}
                     onChange={(e) => setAdditionalNotes(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full px-3 py-2 border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio text-sm"
                     placeholder="Any additional observations or notes..."
                   />
                 </div>
@@ -362,14 +362,14 @@ export default function SmartNoteInput({
           <div className="flex items-center justify-end space-x-3 pt-4 border-t">
             <button
               onClick={() => setInputMode('text')}
-              className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
+              className="px-4 py-2 text-text-dark hover:text-text-dark transition-all duration-200"
             >
               Back to Edit
             </button>
             <button
               onClick={handleSaveNote}
               disabled={isSaving}
-              className="flex items-center space-x-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 px-6 py-2 bg-healui-physio text-white rounded-lg hover:bg-healui-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? (
                 <>

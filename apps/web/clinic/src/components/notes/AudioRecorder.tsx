@@ -162,7 +162,7 @@ export default function AudioRecorder({
               <button
                 onClick={startRecording}
                 disabled={disabled}
-                className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center space-x-2 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Mic className="h-5 w-5" />
                 <span>Start Recording</span>
@@ -171,13 +171,13 @@ export default function AudioRecorder({
               <>
                 <button
                   onClick={pauseResumeRecording}
-                  className="p-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                  className="p-3 bg-healui-accent text-white rounded-lg hover:bg-healui-accent/80 transition-all duration-200"
                 >
                   {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
                 </button>
                 <button
                   onClick={stopRecording}
-                  className="flex items-center space-x-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className="flex items-center space-x-2 px-6 py-3 bg-text-gray text-white rounded-lg hover:bg-text-dark transition-all duration-200"
                 >
                   <Square className="h-5 w-5" />
                   <span>Stop</span>
@@ -189,34 +189,34 @@ export default function AudioRecorder({
           {isRecording && (
             <div className="flex flex-col items-center space-y-2">
               <div className="flex items-center space-x-2">
-                <div className={`h-3 w-3 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`} />
-                <span className="text-sm font-medium text-gray-700">
+                <div className={`h-3 w-3 rounded-full ${isPaused ? 'bg-healui-accent' : 'bg-red-500 animate-pulse'}`} />
+                <span className="text-sm font-medium text-text-gray">
                   {isPaused ? 'Paused' : 'Recording'}
                 </span>
               </div>
-              <span className="text-lg font-mono text-gray-900">{formatTime(recordingTime)}</span>
+              <span className="text-lg font-mono text-text-dark">{formatTime(recordingTime)}</span>
             </div>
           )}
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-bg-light rounded-lg">
             <div className="flex items-center space-x-4">
               <button
                 onClick={playPauseAudio}
-                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="p-2 bg-healui-primary text-white rounded-lg hover:bg-healui-physio transition-all duration-200"
               >
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
               </button>
               <div>
-                <p className="text-sm font-medium text-gray-700">Audio Recording</p>
-                <p className="text-xs text-gray-500">{formatTime(recordingTime)}</p>
+                <p className="text-sm font-medium text-text-gray">Audio Recording</p>
+                <p className="text-xs text-text-light">{formatTime(recordingTime)}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={deleteRecording}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
               >
                 <Trash2 className="h-5 w-5" />
               </button>
@@ -235,7 +235,7 @@ export default function AudioRecorder({
           <div className="flex items-center justify-center">
             <button
               onClick={() => deleteRecording()}
-              className="text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              className="text-sm text-text-gray hover:text-text-dark transition-all duration-200"
             >
               Record Again
             </button>
@@ -244,8 +244,8 @@ export default function AudioRecorder({
       )}
       
       {isTranscribing && (
-        <div className="flex items-center justify-center space-x-2 text-blue-600">
-          <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
+        <div className="flex items-center justify-center space-x-2 text-healui-primary">
+          <div className="animate-spin h-4 w-4 border-2 border-healui-primary border-t-transparent rounded-full" />
           <span className="text-sm">Transcribing audio...</span>
         </div>
       )}

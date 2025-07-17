@@ -56,11 +56,11 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'SCHEDULED':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-healui-primary/20 text-healui-primary border-healui-primary/30';
       case 'IN_PROGRESS':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-healui-accent/20 text-healui-accent border-healui-accent/30';
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-healui-physio/20 text-healui-physio border-healui-physio/30';
       case 'CANCELLED':
         return 'bg-red-100 text-red-800 border-red-200';
       case 'NO_SHOW':
@@ -73,15 +73,15 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const getVisitTypeColor = (type: string) => {
     switch (type) {
       case 'INITIAL_CONSULTATION':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-healui-primary/20 text-healui-primary border border-healui-primary/30';
       case 'FOLLOW_UP':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-healui-physio/20 text-healui-physio border border-healui-physio/30';
       case 'REVIEW':
-        return 'bg-green-100 text-green-800';
+        return 'bg-healui-accent/20 text-healui-accent border border-healui-accent/30';
       case 'EMERGENCY':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 border border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
 
@@ -92,25 +92,25 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+    <div className="card-base hover:shadow-physio transition-all duration-200">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div 
-          className="flex items-center space-x-3 cursor-pointer hover:bg-blue-50 rounded-lg p-2 -m-2 transition-colors flex-1"
+          className="flex items-center space-x-3 cursor-pointer hover:bg-healui-physio/5 rounded-lg p-2 -m-2 transition-all duration-200 flex-1"
           onClick={(e) => {
             e.stopPropagation();
             onViewPatient(visit.patient);
           }}
           title="Click to view patient details"
         >
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-sm">
+          <div className="h-10 w-10 rounded-full bg-gradient-physio flex items-center justify-center text-white font-medium text-sm shadow-physio">
             {visit.patient?.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-blue-600 hover:text-blue-800 truncate">
+            <h3 className="text-sm font-medium text-healui-primary hover:text-healui-physio truncate">
               {visit.patient?.full_name || 'Unknown Patient'}
             </h3>
-            <p className="text-xs text-gray-500">{visit.patient?.patient_code}</p>
+            <p className="text-xs text-text-light">{visit.patient?.patient_code}</p>
           </div>
         </div>
         <div className="flex flex-col items-end space-y-1">
@@ -118,7 +118,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             {visit.status.replace('_', ' ')}
           </span>
           {visit.note && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-healui-primary/20 text-healui-primary border border-healui-primary/30">
               <FileText className="h-3 w-3 mr-1" />
               Note
             </span>
@@ -128,7 +128,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
 
       {/* Time and Type */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center text-sm text-gray-600">
+        <div className="flex items-center text-sm text-text-gray">
           <Clock className="h-4 w-4 mr-1" />
           <span className="font-medium">{visit.scheduled_time}</span>
           <span className="mx-2">•</span>
@@ -141,7 +141,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
 
       {/* Doctor (for admin view) */}
       {isAdmin && visit.physiotherapist && (
-        <div className="flex items-center text-sm text-gray-600 mb-3">
+        <div className="flex items-center text-sm text-text-gray mb-3">
           <Stethoscope className="h-4 w-4 mr-1" />
           <span>Dr. {visit.physiotherapist.full_name}</span>
         </div>
@@ -150,12 +150,12 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
       {/* Chief Complaint */}
       {visit.chief_complaint && (
         <div className="mb-3">
-          <p className="text-sm text-gray-600 line-clamp-2">{visit.chief_complaint}</p>
+          <p className="text-sm text-text-gray line-clamp-2">{visit.chief_complaint}</p>
         </div>
       )}
 
       {/* Contact Info */}
-      <div className="flex items-center space-x-4 text-xs text-gray-500 mb-3">
+      <div className="flex items-center space-x-4 text-xs text-text-light mb-3">
         {visit.patient?.phone && (
           <div className="flex items-center">
             <Phone className="h-3 w-3 mr-1" />
@@ -171,8 +171,8 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <div className="text-xs text-gray-500">
+      <div className="flex items-center justify-between pt-3 border-t border-border-color">
+        <div className="text-xs text-text-light">
           Click patient name to view details
         </div>
         
@@ -180,7 +180,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
           {visit.status === 'SCHEDULED' && onStartVisit && (
             <button
               onClick={() => onStartVisit(visit.id)}
-              className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
+              className="p-1.5 text-healui-physio hover:text-healui-primary hover:bg-healui-physio/10 rounded-lg transition-all duration-200"
               title="Start Visit"
             >
               <Activity className="h-4 w-4" />
@@ -190,7 +190,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
           {visit.status === 'COMPLETED' && !visit.note && onAddNote && (
             <button
               onClick={() => onAddNote(visit.id)}
-              className="p-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
+              className="p-1.5 text-healui-primary hover:text-healui-physio hover:bg-healui-primary/10 rounded-lg transition-all duration-200"
               title="Add Note"
             >
               <FileText className="h-4 w-4" />
@@ -200,14 +200,14 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
           {visit.status === 'SCHEDULED' && onReschedule && (
             <button
               onClick={() => onReschedule(visit.id)}
-              className="p-1.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors"
+              className="p-1.5 text-healui-accent hover:text-healui-primary hover:bg-healui-accent/10 rounded-lg transition-all duration-200"
               title="Reschedule"
             >
               <Calendar className="h-4 w-4" />
             </button>
           )}
           
-          <ChevronRight className="h-4 w-4 text-gray-400" />
+          <ChevronRight className="h-4 w-4 text-text-light" />
         </div>
       </div>
     </div>

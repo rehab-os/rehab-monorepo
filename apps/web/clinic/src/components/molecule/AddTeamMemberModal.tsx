@@ -162,7 +162,7 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="px-6 py-4 border-b border-border-color bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-white/20 rounded-lg">
@@ -175,7 +175,7 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+              className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all duration-200"
             >
               <X className="h-5 w-5" />
             </button>
@@ -187,20 +187,20 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
           <div className="space-y-6">
             {/* Personal Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+              <h3 className="text-lg font-medium text-text-dark mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-dark mb-2">
                     Full Name *
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-light" />
                     <input
                       type="text"
                       value={formData.full_name}
                       onChange={(e) => handleInputChange('full_name', e.target.value)}
-                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.full_name ? 'border-red-300' : 'border-gray-300'
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio ${
+                        errors.full_name ? 'border-red-300' : 'border-border-color'
                       }`}
                       placeholder="Enter full name"
                     />
@@ -214,13 +214,13 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-dark mb-2">
                     Role *
                   </label>
                   <select
                     value={formData.role}
                     onChange={(e) => handleInputChange('role', e.target.value as any)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio"
                   >
                     <option value="physiotherapist">Physiotherapist</option>
                     <option value="receptionist">Receptionist/Manager</option>
@@ -231,20 +231,20 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
 
             {/* Contact Information */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+              <h3 className="text-lg font-medium text-text-dark mb-4">Contact Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-dark mb-2">
                     Phone Number *
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-light" />
                     <input
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.phone ? 'border-red-300' : 'border-gray-300'
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio ${
+                        errors.phone ? 'border-red-300' : 'border-border-color'
                       }`}
                       placeholder="+91 98765 43210"
                     />
@@ -258,17 +258,17 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-dark mb-2">
                     Email Address *
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-light" />
                     <input
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.email ? 'border-red-300' : 'border-gray-300'
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio ${
+                        errors.email ? 'border-red-300' : 'border-border-color'
                       }`}
                       placeholder="john@example.com"
                     />
@@ -285,14 +285,14 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
 
             {/* Clinic Assignment */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Clinic Assignment</h3>
+              <h3 className="text-lg font-medium text-text-dark mb-4">Clinic Assignment</h3>
               {userData?.organization?.is_owner && availableClinics.length > 1 ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-text-gray mb-3">
                     Select which clinics this member will work at:
                   </p>
                   {availableClinics.map((clinic) => (
-                    <div key={clinic.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                    <div key={clinic.id} className="flex items-center justify-between p-3 border border-border-color rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center">
                           <input
@@ -300,11 +300,11 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
                             id={`clinic-${clinic.id}`}
                             checked={formData.clinic_ids.includes(clinic.id)}
                             onChange={() => handleClinicToggle(clinic.id)}
-                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="h-4 w-4 text-healui-primary border-border-color rounded focus:ring-blue-500"
                           />
                           <label htmlFor={`clinic-${clinic.id}`} className="ml-3 flex items-center">
-                            <Building2 className="h-4 w-4 text-gray-400 mr-2" />
-                            <span className="text-sm font-medium text-gray-900">{clinic.name}</span>
+                            <Building2 className="h-4 w-4 text-text-light mr-2" />
+                            <span className="text-sm font-medium text-text-dark">{clinic.name}</span>
                           </label>
                         </div>
                       </div>
@@ -315,7 +315,7 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
                             id={`admin-${clinic.id}`}
                             checked={formData.admin_clinic_ids.includes(clinic.id)}
                             onChange={() => handleAdminToggle(clinic.id)}
-                            className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                            className="h-4 w-4 text-red-600 border-border-color rounded focus:ring-red-500"
                           />
                           <label htmlFor={`admin-${clinic.id}`} className="ml-2 flex items-center">
                             <Shield className="h-4 w-4 text-red-500 mr-1" />
@@ -333,14 +333,14 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
                   )}
                 </div>
               ) : (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="p-4 bg-healui-primary/10 border border-healui-primary/30 rounded-lg">
                   <div className="flex items-center">
-                    <Building2 className="h-5 w-5 text-blue-600 mr-2" />
+                    <Building2 className="h-5 w-5 text-healui-primary mr-2" />
                     <div>
-                      <p className="text-sm font-medium text-blue-900">
+                      <p className="text-sm font-medium text-healui-primary">
                         {currentClinic ? currentClinic.name : 'All Organization Clinics'}
                       </p>
-                      <p className="text-xs text-blue-700">
+                      <p className="text-xs text-healui-physio">
                         {currentClinic 
                           ? 'Member will be added to current clinic' 
                           : 'Member will be added to all clinics in organization'
@@ -388,11 +388,11 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-border-color bg-bg-light">
           <div className="flex items-center justify-between">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="btn-secondary px-4 py-2"
             >
               Cancel
             </button>
@@ -400,7 +400,7 @@ const AddTeamMemberModal: React.FC<AddTeamMemberModalProps> = ({ onClose, onSucc
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             >
               {loading ? (
                 <>
