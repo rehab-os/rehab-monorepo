@@ -26,6 +26,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../theme/colors';
 import { AnimatedCard } from '../components/ui/AnimatedCard';
+import SmartNoteInput from '../components/notes/SmartNoteInput';
 
 export default function NotesScreen({ route }: any) {
   const dispatch = useDispatch();
@@ -41,6 +42,8 @@ export default function NotesScreen({ route }: any) {
   
   const [isEditing, setIsEditing] = useState(false);
   const [selectedNote, setSelectedNote] = useState<any>(null);
+  const [useSmartNotes, setUseSmartNotes] = useState(true);
+  const [showSmartInput, setShowSmartInput] = useState(false);
 
   useEffect(() => {
     if (visit?.id) {
@@ -109,6 +112,12 @@ export default function NotesScreen({ route }: any) {
       outcome_measures: note.outcome_measures || '',
     }));
     setIsEditing(true);
+    setUseSmartNotes(false);
+  };
+
+  const handleSmartNoteCreated = () => {
+    setShowSmartInput(false);
+    fetchNotes();
   };
 
   const handleSignNote = async (note: any) => {
@@ -357,14 +366,28 @@ export default function NotesScreen({ route }: any) {
               <Icon name="arrow-left" size={24} color={colors?.gray?.[700] || '#374151'} />
             </TouchableOpacity>
             <Text className="text-lg font-semibold text-gray-900">Visit Notes</Text>
-            <TouchableOpacity
-              onPress={() => setIsEditing(!isEditing)}
-              className="bg-sage-600 px-4 py-2 rounded-lg"
-            >
-              <Text className="text-white font-medium">
-                {isEditing ? 'Cancel' : 'Add Note'}
-              </Text>
-            </TouchableOpacity>
+            <View className="flex-row space-x-2">
+              <TouchableOpacity
+                onPress={() => {
+                  setUseSmartNotes(true);
+                  setShowSmartInput(true);
+                }}
+                className="bg-blue-600 px-3 py-2 rounded-lg"
+              >
+                <Text className="text-white font-medium text-xs">Smart Note</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setUseSmartNotes(false);
+                  setIsEditing(!isEditing);
+                }}
+                className="bg-sage-600 px-3 py-2 rounded-lg"
+              >
+                <Text className="text-white font-medium text-xs">
+                  {isEditing ? 'Cancel' : 'Manual'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -378,7 +401,13 @@ export default function NotesScreen({ route }: any) {
           </Text>
         </View>
 
-        {isEditing ? (
+        {showSmartInput ? (
+          <SmartNoteInput
+            visitId={visit.id}
+            onNoteCreated={handleSmartNoteCreated}
+            onCancel={() => setShowSmartInput(false)}
+          />
+        ) : isEditing ? (
           <ScrollView className="flex-1 px-4 py-6">
             {/* Note Type Selector */}
             <View className="bg-white rounded-2xl p-6 mb-6">
@@ -489,12 +518,20 @@ export default function NotesScreen({ route }: any) {
                 <Text className="text-gray-600 text-center mt-2">
                   Add your first note to document this visit
                 </Text>
-                <TouchableOpacity
-                  onPress={() => setIsEditing(true)}
-                  className="mt-6 bg-sage-600 px-6 py-3 rounded-xl"
-                >
-                  <Text className="text-white font-medium">Add First Note</Text>
-                </TouchableOpacity>
+                <View className="mt-6 flex-row space-x-3">
+                  <TouchableOpacity
+                    onPress={() => setShowSmartInput(true)}
+                    className="flex-1 bg-blue-600 px-6 py-3 rounded-xl"
+                  >
+                    <Text className="text-white font-medium text-center">Smart Note</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setIsEditing(true)}
+                    className="flex-1 bg-sage-600 px-6 py-3 rounded-xl"
+                  >
+                    <Text className="text-white font-medium text-center">Manual Note</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           </ScrollView>

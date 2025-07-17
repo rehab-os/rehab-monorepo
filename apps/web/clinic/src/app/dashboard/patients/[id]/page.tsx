@@ -8,9 +8,10 @@ import {
   ArrowLeft, User, Phone, Mail, Calendar, MapPin, Heart, Shield, 
   FileText, Clock, Activity, AlertCircle, Plus, Save, Edit3, 
   CheckCircle, Stethoscope, Pill, Brain, Target, ClipboardList,
-  CalendarPlus, Eye, Edit, Trash2
+  CalendarPlus, Eye, Edit, Trash2, Sparkles
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import SmartNoteInput from '../../../../components/notes/SmartNoteInput';
 
 interface Patient {
   id: string;
@@ -88,6 +89,7 @@ export default function PatientDetailsPage() {
     progress: { progress: '', interventions: '', response: '', plan: '' }
   });
   const [additionalNotes, setAdditionalNotes] = useState('');
+  const [useSmartNotes, setUseSmartNotes] = useState(true);
 
   useEffect(() => {
     if (params.id && currentClinic?.id) {
@@ -200,6 +202,13 @@ export default function PatientDetailsPage() {
       progress: { progress: '', interventions: '', response: '', plan: '' }
     });
     setAdditionalNotes('');
+    setUseSmartNotes(true);
+  };
+
+  const handleSmartNoteCreated = () => {
+    setShowNewNote(false);
+    setSelectedVisit(null);
+    fetchVisits();
   };
 
   const calculateAge = (dob: string) => {
@@ -472,13 +481,28 @@ export default function PatientDetailsPage() {
                   Visit History
                 </h3>
                 {visits.length > 0 && (
-                  <button
-                    onClick={() => setShowNewNote(true)}
-                    className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Note
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => {
+                        setUseSmartNotes(true);
+                        setShowNewNote(true);
+                      }}
+                      className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                    >
+                      <Sparkles className="h-4 w-4 mr-1" />
+                      Smart Note
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUseSmartNotes(false);
+                        setShowNewNote(true);
+                      }}
+                      className="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Manual Note
+                    </button>
+                  </div>
                 )}
               </div>
               
@@ -502,15 +526,29 @@ export default function PatientDetailsPage() {
                           )}
                         </div>
                         {!visit.note && (
-                          <button
-                            onClick={() => {
-                              setSelectedVisit(visit);
-                              setShowNewNote(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-700 text-xs"
-                          >
-                            Add Note
-                          </button>
+                          <div className="flex space-x-1">
+                            <button
+                              onClick={() => {
+                                setSelectedVisit(visit);
+                                setUseSmartNotes(true);
+                                setShowNewNote(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-700 text-xs"
+                            >
+                              Smart Note
+                            </button>
+                            <span className="text-gray-400 text-xs">|</span>
+                            <button
+                              onClick={() => {
+                                setSelectedVisit(visit);
+                                setUseSmartNotes(false);
+                                setShowNewNote(true);
+                              }}
+                              className="text-gray-600 hover:text-gray-700 text-xs"
+                            >
+                              Manual
+                            </button>
+                          </div>
                         )}
                       </div>
                       
@@ -552,25 +590,23 @@ export default function PatientDetailsPage() {
 
             {/* Note Taking Section */}
             {showNewNote && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Add Clinical Note</h3>
-                  <button
-                    onClick={() => {
-                      setShowNewNote(false);
-                      setSelectedVisit(null);
-                      resetNoteForm();
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    ×
-                  </button>
-                </div>
-
+              <>
                 {/* Visit Selection */}
                 {!selectedVisit && (
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Select Visit</label>
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Select Visit</h3>
+                      <button
+                        onClick={() => {
+                          setShowNewNote(false);
+                          setSelectedVisit(null);
+                          resetNoteForm();
+                        }}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ×
+                      </button>
+                    </div>
                     <div className="space-y-2 max-h-32 overflow-y-auto">
                       {visits.filter(v => !v.note).map((visit) => (
                         <button
@@ -595,7 +631,7 @@ export default function PatientDetailsPage() {
 
                 {selectedVisit && (
                   <>
-                    <div className="mb-4 bg-blue-50 p-3 rounded-lg">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                       <p className="font-medium text-blue-900 text-sm">
                         Selected Visit: {formatVisitType(selectedVisit.visit_type)}
                       </p>
@@ -604,232 +640,260 @@ export default function PatientDetailsPage() {
                       </p>
                     </div>
 
-                    {/* Note Type Selection */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Note Type</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {(['SOAP', 'DAP', 'PROGRESS'] as const).map((type) => (
+                    {useSmartNotes ? (
+                      <SmartNoteInput
+                        visitId={selectedVisit.id}
+                        onNoteCreated={handleSmartNoteCreated}
+                        onCancel={() => {
+                          setShowNewNote(false);
+                          setSelectedVisit(null);
+                          resetNoteForm();
+                        }}
+                      />
+                    ) : (
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-900">Manual Note Entry</h3>
                           <button
-                            key={type}
-                            onClick={() => setNoteType(type)}
-                            className={`p-2 border rounded-lg text-xs transition-colors ${
-                              noteType === type
-                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
+                            onClick={() => {
+                              setShowNewNote(false);
+                              setSelectedVisit(null);
+                              resetNoteForm();
+                            }}
+                            className="text-gray-400 hover:text-gray-600"
                           >
-                            <div className="font-medium">{type}</div>
+                            ×
                           </button>
-                        ))}
-                      </div>
-                    </div>
+                        </div>
 
-                    {/* Note Content */}
-                    <div className="space-y-4">
-                      {noteType === 'SOAP' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Subjective</label>
-                            <textarea
-                              value={noteData.soap.subjective}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                soap: { ...noteData.soap, subjective: e.target.value }
-                              })}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Patient's symptoms, pain levels..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
-                            <textarea
-                              value={noteData.soap.objective}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                soap: { ...noteData.soap, objective: e.target.value }
-                              })}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Clinical findings, measurements..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Assessment</label>
-                            <textarea
-                              value={noteData.soap.assessment}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                soap: { ...noteData.soap, assessment: e.target.value }
-                              })}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Clinical judgment, diagnosis..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
-                            <textarea
-                              value={noteData.soap.plan}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                soap: { ...noteData.soap, plan: e.target.value }
-                              })}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Treatment plan, next steps..."
-                            />
+                        {/* Note Type Selection */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Note Type</label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(['SOAP', 'DAP', 'PROGRESS'] as const).map((type) => (
+                              <button
+                                key={type}
+                                onClick={() => setNoteType(type)}
+                                className={`p-2 border rounded-lg text-xs transition-colors ${
+                                  noteType === type
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                              >
+                                <div className="font-medium">{type}</div>
+                              </button>
+                            ))}
                           </div>
                         </div>
-                      )}
 
-                      {noteType === 'DAP' && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
-                            <textarea
-                              value={noteData.dap.data}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                dap: { ...noteData.dap, data: e.target.value }
-                              })}
-                              rows={4}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Objective data, measurements..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Assessment</label>
-                            <textarea
-                              value={noteData.dap.assessment}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                dap: { ...noteData.dap, assessment: e.target.value }
-                              })}
-                              rows={4}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Clinical assessment..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
-                            <textarea
-                              value={noteData.dap.plan}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                dap: { ...noteData.dap, plan: e.target.value }
-                              })}
-                              rows={4}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Treatment plan..."
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {noteType === 'PROGRESS' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Progress</label>
-                            <textarea
-                              value={noteData.progress.progress}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                progress: { ...noteData.progress, progress: e.target.value }
-                              })}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Patient's progress..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Interventions</label>
-                            <textarea
-                              value={noteData.progress.interventions}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                progress: { ...noteData.progress, interventions: e.target.value }
-                              })}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Treatments provided..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Response</label>
-                            <textarea
-                              value={noteData.progress.response}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                progress: { ...noteData.progress, response: e.target.value }
-                              })}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Patient's response..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
-                            <textarea
-                              value={noteData.progress.plan}
-                              onChange={(e) => setNoteData({
-                                ...noteData,
-                                progress: { ...noteData.progress, plan: e.target.value }
-                              })}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Future treatment plan..."
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Additional Notes - Separate Section */}
-                      <div className="border-t border-gray-200 pt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
-                        <textarea
-                          value={additionalNotes}
-                          onChange={(e) => setAdditionalNotes(e.target.value)}
-                          rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          placeholder="Any additional observations, recommendations, or notes..."
-                        />
-                      </div>
-
-                      {/* Save Button */}
-                      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-                        <button
-                          onClick={() => {
-                            setShowNewNote(false);
-                            setSelectedVisit(null);
-                            resetNoteForm();
-                          }}
-                          className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleCreateNote}
-                          disabled={!selectedVisit || isCreatingNote}
-                          className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isCreatingNote ? (
-                            <>
-                              <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full"></div>
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Save className="h-4 w-4 mr-2" />
-                              Save Note
-                            </>
+                        {/* Note Content */}
+                        <div className="space-y-4">
+                          {noteType === 'SOAP' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Subjective</label>
+                                <textarea
+                                  value={noteData.soap.subjective}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    soap: { ...noteData.soap, subjective: e.target.value }
+                                  })}
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Patient's symptoms, pain levels..."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
+                                <textarea
+                                  value={noteData.soap.objective}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    soap: { ...noteData.soap, objective: e.target.value }
+                                  })}
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Clinical findings, measurements..."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Assessment</label>
+                                <textarea
+                                  value={noteData.soap.assessment}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    soap: { ...noteData.soap, assessment: e.target.value }
+                                  })}
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Clinical judgment, diagnosis..."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+                                <textarea
+                                  value={noteData.soap.plan}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    soap: { ...noteData.soap, plan: e.target.value }
+                                  })}
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Treatment plan, next steps..."
+                                />
+                              </div>
+                            </div>
                           )}
-                        </button>
+
+                          {noteType === 'DAP' && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
+                                <textarea
+                                  value={noteData.dap.data}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    dap: { ...noteData.dap, data: e.target.value }
+                                  })}
+                                  rows={4}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Objective data, measurements..."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Assessment</label>
+                                <textarea
+                                  value={noteData.dap.assessment}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    dap: { ...noteData.dap, assessment: e.target.value }
+                                  })}
+                                  rows={4}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Clinical assessment..."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+                                <textarea
+                                  value={noteData.dap.plan}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    dap: { ...noteData.dap, plan: e.target.value }
+                                  })}
+                                  rows={4}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Treatment plan..."
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {noteType === 'PROGRESS' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Progress</label>
+                                <textarea
+                                  value={noteData.progress.progress}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    progress: { ...noteData.progress, progress: e.target.value }
+                                  })}
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Patient's progress..."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Interventions</label>
+                                <textarea
+                                  value={noteData.progress.interventions}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    progress: { ...noteData.progress, interventions: e.target.value }
+                                  })}
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Treatments provided..."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Response</label>
+                                <textarea
+                                  value={noteData.progress.response}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    progress: { ...noteData.progress, response: e.target.value }
+                                  })}
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Patient's response..."
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+                                <textarea
+                                  value={noteData.progress.plan}
+                                  onChange={(e) => setNoteData({
+                                    ...noteData,
+                                    progress: { ...noteData.progress, plan: e.target.value }
+                                  })}
+                                  rows={3}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                  placeholder="Future treatment plan..."
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Additional Notes - Separate Section */}
+                          <div className="border-t border-gray-200 pt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                            <textarea
+                              value={additionalNotes}
+                              onChange={(e) => setAdditionalNotes(e.target.value)}
+                              rows={3}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                              placeholder="Any additional observations, recommendations, or notes..."
+                            />
+                          </div>
+
+                          {/* Save Button */}
+                          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                            <button
+                              onClick={() => {
+                                setShowNewNote(false);
+                                setSelectedVisit(null);
+                                resetNoteForm();
+                              }}
+                              className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={handleCreateNote}
+                              disabled={!selectedVisit || isCreatingNote}
+                              className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isCreatingNote ? (
+                                <>
+                                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full"></div>
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4 mr-2" />
+                                  Save Note
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </>
                 )}
-              </div>
+              </>
             )}
           </div>
         </div>

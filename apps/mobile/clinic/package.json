@@ -27,6 +27,8 @@
     "react-redux": "*",
     "axios": "*",
     "nativewind": "*",
-    "tailwindcss": "*"
+    "tailwindcss": "*",
+    "expo-av": "*",
+    "expo-file-system": "*"
   }
 }
