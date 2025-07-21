@@ -30,6 +30,7 @@ export class NotesService {
 
     constructor(private configService: ConfigService) {
         const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+        console.log("key passed:",apiKey)
         if (!apiKey) {
             throw new Error('OpenAI API key is not configured');
         }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Mic, MicOff, Square, Play, Pause, Trash2, Upload, AlertCircle } from 'lucide-react';
 
 interface AudioRecorderProps {
@@ -23,11 +23,16 @@ export default function AudioRecorder({
   const [recordingTime, setRecordingTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [volumeLevel, setVolumeLevel] = useState(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     return () => {
@@ -37,17 +42,60 @@ export default function AudioRecorder({
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
   }, [audioUrl]);
+
+  const setupAudioAnalyser = useCallback((stream: MediaStream) => {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaStreamSource(stream);
+    
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.8;
+    
+    source.connect(analyser);
+    
+    audioContextRef.current = audioContext;
+    analyserRef.current = analyser;
+    
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    
+    const updateVolume = () => {
+      if (!analyserRef.current || !isRecording) return;
+      
+      analyserRef.current.getByteFrequencyData(dataArray);
+      const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+      setVolumeLevel(average / 255);
+      
+      animationFrameRef.current = requestAnimationFrame(updateVolume);
+    };
+    
+    updateVolume();
+  }, [isRecording]);
 
   const startRecording = async () => {
     try {
       setError(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
+      // Try to use audio/wav if supported, otherwise fall back to webm
+      const mimeType = MediaRecorder.isTypeSupported('audio/wav') 
+        ? 'audio/wav' 
+        : MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm';
+      
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -58,20 +106,38 @@ export default function AudioRecorder({
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(audioBlob);
-        const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
-        onRecordingComplete(audioBlob);
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         
-        // Stop all tracks
+        // Convert to WAV if not already in a supported format
+        let finalBlob = audioBlob;
+        if (mimeType.includes('webm')) {
+          // For now, we'll send as is and handle conversion server-side
+          // Or we can rename the file extension to match the actual format
+          finalBlob = new Blob([audioBlob], { type: 'audio/webm' });
+        }
+        
+        setAudioBlob(finalBlob);
+        const url = URL.createObjectURL(finalBlob);
+        setAudioUrl(url);
+        onRecordingComplete(finalBlob);
+        
+        // Cleanup
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+        }
         stream.getTracks().forEach(track => track.stop());
       };
 
       mediaRecorder.start();
       setIsRecording(true);
       setIsPaused(false);
+      
+      // Setup audio analyser for visualization
+      setupAudioAnalyser(stream);
       
       // Start timer
       timerRef.current = setInterval(() => {
@@ -187,13 +253,31 @@ export default function AudioRecorder({
           </div>
           
           {isRecording && (
-            <div className="flex flex-col items-center space-y-2">
+            <div className="flex flex-col items-center space-y-4">
               <div className="flex items-center space-x-2">
                 <div className={`h-3 w-3 rounded-full ${isPaused ? 'bg-healui-accent' : 'bg-red-500 animate-pulse'}`} />
                 <span className="text-sm font-medium text-text-gray">
                   {isPaused ? 'Paused' : 'Recording'}
                 </span>
               </div>
+              
+              {/* Audio Wave Visualization */}
+              <div className="flex items-center justify-center space-x-1 h-16">
+                {[...Array(20)].map((_, i) => {
+                  const height = isPaused ? 10 : Math.max(10, volumeLevel * 60 * (1 + Math.sin(i * 0.5) * 0.3));
+                  return (
+                    <div
+                      key={i}
+                      className="w-1 bg-healui-primary rounded-full transition-all duration-100"
+                      style={{
+                        height: `${height}px`,
+                        opacity: isPaused ? 0.3 : 0.8 + (volumeLevel * 0.2),
+                      }}
+                    />
+                  );
+                })}
+              </div>
+              
               <span className="text-lg font-mono text-text-dark">{formatTime(recordingTime)}</span>
             </div>
           )}

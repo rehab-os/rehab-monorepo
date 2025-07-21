@@ -52,8 +52,28 @@ export default function SmartNoteInput({
     try {
       setIsTranscribing(true);
       
-      // Convert blob to File
-      const audioFile = new File([blob], 'recording.webm', { type: blob.type });
+      // Determine file extension based on blob type
+      let filename = 'recording';
+      let mimeType = blob.type;
+      
+      if (blob.type.includes('webm')) {
+        filename = 'recording.webm';
+        // Convert webm to wav format that the API accepts
+        // For now, we'll send webm and update the backend to support it
+        // Alternatively, we can use a library to convert client-side
+      } else if (blob.type.includes('wav')) {
+        filename = 'recording.wav';
+      } else if (blob.type.includes('mp3')) {
+        filename = 'recording.mp3';
+      } else if (blob.type.includes('m4a')) {
+        filename = 'recording.m4a';
+      } else {
+        // Default to webm if type is not recognized
+        filename = 'recording.webm';
+        mimeType = 'audio/webm';
+      }
+      
+      const audioFile = new File([blob], filename, { type: mimeType });
       
       const response = await ApiManager.transcribeAudio(audioFile);
       
@@ -64,11 +84,12 @@ export default function SmartNoteInput({
         // Automatically generate note from transcription
         await generateSmartNote(response.data.transcription);
       } else {
-        setError('Failed to transcribe audio. Please try again.');
+        setError(response.message || 'Failed to transcribe audio. Please try again.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Transcription error:', err);
-      setError('Failed to transcribe audio. Please try again.');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to transcribe audio. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsTranscribing(false);
     }

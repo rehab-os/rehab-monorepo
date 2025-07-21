@@ -20,9 +20,9 @@ export class AudioService {
         }
 
         // Validate file type
-        const allowedTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/mpeg'];
+        const allowedTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/mpeg', 'audio/webm', 'audio/ogg'];
         if (!allowedTypes.includes(file.mimetype)) {
-            throw new BadRequestException('Invalid file type. Only MP3, WAV, and M4A files are supported');
+            throw new BadRequestException('Invalid file type. Only MP3, WAV, M4A, and WebM files are supported');
         }
 
         // Validate file size (max 25MB for OpenAI Whisper)

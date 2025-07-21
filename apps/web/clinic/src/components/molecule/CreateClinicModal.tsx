@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppSelector } from '../../store/hooks';
 import ApiManager from '../../services/api';
 import {
@@ -18,6 +18,7 @@ import {
   CheckCircle,
   Loader2
 } from 'lucide-react';
+import machinesData from '../../../../../../database/machines/machines.json';
 
 interface CreateClinicModalProps {
   onClose: () => void;
@@ -47,7 +48,18 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [newFacility, setNewFacility] = useState('');
+  
+  // Group machines by type
+  const machinesByType = React.useMemo(() => {
+    const grouped: Record<string, typeof machinesData.machines> = {};
+    machinesData.machines.forEach(machine => {
+      if (!grouped[machine.type]) {
+        grouped[machine.type] = [];
+      }
+      grouped[machine.type].push(machine);
+    });
+    return grouped;
+  }, []);
   
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -165,22 +177,6 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
     }
   };
 
-  const addFacility = () => {
-    if (newFacility.trim() && !formData.facilities.includes(newFacility.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        facilities: [...prev.facilities, newFacility.trim()]
-      }));
-      setNewFacility('');
-    }
-  };
-
-  const removeFacility = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      facilities: prev.facilities.filter((_, i) => i !== index)
-    }));
-  };
 
   const updateWorkingHours = (day: string, field: 'open' | 'close' | 'is_open', value: string | boolean) => {
     setFormData(prev => ({
@@ -526,45 +522,60 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
           {/* Step 3: Additional Info */}
           {currentStep === 3 && (
             <div className="space-y-6">
-              {/* Facilities */}
+              {/* Facilities - Machine Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Facilities (Optional)
+                  Facilities - Available Machines
                 </label>
-                <div className="flex items-center space-x-2 mb-3">
-                  <input
-                    type="text"
-                    value={newFacility}
-                    onChange={(e) => setNewFacility(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Add a facility (e.g., X-Ray, MRI)"
-                    onKeyPress={(e) => e.key === 'Enter' && addFacility()}
-                  />
-                  <button
-                    type="button"
-                    onClick={addFacility}
-                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+                
+                {/* Machine Categories */}
+                <div className="space-y-4">
+                  {Object.entries(machinesByType).map(([type, machines]) => (
+                    <div key={type} className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3">{type}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {machines.map((machine, index) => (
+                          <label key={index} className="flex items-start space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                            <input
+                              type="checkbox"
+                              checked={formData.facilities.includes(machine.name)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    facilities: [...prev.facilities, machine.name]
+                                  }));
+                                } else {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    facilities: prev.facilities.filter(f => f !== machine.name)
+                                  }));
+                                }
+                              }}
+                              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-700">{machine.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
+                
+                {/* Selected Facilities Summary */}
                 {formData.facilities.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {formData.facilities.map((facility, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-                      >
-                        {facility}
-                        <button
-                          type="button"
-                          onClick={() => removeFacility(index)}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600 mb-2">Selected machines: {formData.facilities.length}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.facilities.map((facility, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
                         >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
+                          {facility}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
