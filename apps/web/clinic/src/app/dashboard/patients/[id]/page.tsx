@@ -12,6 +12,16 @@ import {
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import SmartNoteInput from '../../../../components/notes/SmartNoteInput';
+import {
+  SlidePopup,
+  SlidePopupContent,
+  SlidePopupHeader,
+  SlidePopupTitle,
+  SlidePopupDescription,
+  SlidePopupBody,
+  SlidePopupFooter,
+  SlidePopupClose
+} from '../../../../components/ui/slide-popup';
 
 interface Patient {
   id: string;
@@ -79,7 +89,8 @@ export default function PatientDetailsPage() {
   const [visits, setVisits] = useState<Visit[]>([]);
   const [visitHistory, setVisitHistory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showNewNote, setShowNewNote] = useState(false);
+  const [showSmartNotePopup, setShowSmartNotePopup] = useState(false);
+  const [showManualNotePopup, setShowManualNotePopup] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [noteType, setNoteType] = useState<'SOAP' | 'DAP' | 'PROGRESS'>('SOAP');
@@ -89,7 +100,6 @@ export default function PatientDetailsPage() {
     progress: { progress: '', interventions: '', response: '', plan: '' }
   });
   const [additionalNotes, setAdditionalNotes] = useState('');
-  const [useSmartNotes, setUseSmartNotes] = useState(true);
 
   useEffect(() => {
     if (params.id && currentClinic?.id) {
@@ -181,7 +191,7 @@ export default function PatientDetailsPage() {
         alert('Note saved successfully!');
         await fetchVisits();
         resetNoteForm();
-        setShowNewNote(false);
+        setShowManualNotePopup(false);
         setSelectedVisit(null);
       } else {
         console.error('Failed to create note:', response);
@@ -202,14 +212,8 @@ export default function PatientDetailsPage() {
       progress: { progress: '', interventions: '', response: '', plan: '' }
     });
     setAdditionalNotes('');
-    setUseSmartNotes(true);
   };
 
-  const handleSmartNoteCreated = () => {
-    setShowNewNote(false);
-    setSelectedVisit(null);
-    fetchVisits();
-  };
 
   const calculateAge = (dob: string) => {
     const today = new Date();
@@ -343,8 +347,8 @@ export default function PatientDetailsPage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => {
-                  setUseSmartNotes(true);
-                  setShowNewNote(true);
+                  setSelectedVisit(null);
+                  setShowSmartNotePopup(true);
                 }}
                 className="btn-primary text-sm px-4 py-2 inline-flex items-center"
               >
@@ -353,8 +357,8 @@ export default function PatientDetailsPage() {
               </button>
               <button
                 onClick={() => {
-                  setUseSmartNotes(false);
-                  setShowNewNote(true);
+                  setSelectedVisit(null);
+                  setShowManualNotePopup(true);
                 }}
                 className="btn-secondary text-sm px-4 py-2 inline-flex items-center"
               >
@@ -541,8 +545,7 @@ export default function PatientDetailsPage() {
                               <button
                                 onClick={() => {
                                   setSelectedVisit(visit);
-                                  setUseSmartNotes(true);
-                                  setShowNewNote(true);
+                                  setShowSmartNotePopup(true);
                                 }}
                                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                               >
@@ -551,8 +554,7 @@ export default function PatientDetailsPage() {
                               <button
                                 onClick={() => {
                                   setSelectedVisit(visit);
-                                  setUseSmartNotes(false);
-                                  setShowNewNote(true);
+                                  setShowManualNotePopup(true);
                                 }}
                                 className="text-gray-600 hover:text-gray-700 text-sm font-medium"
                               >
@@ -588,313 +590,365 @@ export default function PatientDetailsPage() {
               </div>
             </div>
 
-            {/* Note Taking Section */}
-            {showNewNote && (
-              <div className="mt-6">
-                {/* Visit Selection */}
-                {!selectedVisit && (
-                  <div className="bg-white rounded-lg p-4 mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Select Visit</h3>
-                      <button
-                        onClick={() => {
-                          setShowNewNote(false);
-                          setSelectedVisit(null);
-                          resetNoteForm();
-                        }}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {visits.filter(v => !v.note).map((visit) => (
-                        <button
-                          key={visit.id}
-                          onClick={() => setSelectedVisit(visit)}
-                          className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium text-gray-900 text-sm">{formatVisitType(visit.visit_type)}</p>
-                              <p className="text-xs text-gray-500">
-                                {format(parseISO(visit.scheduled_date), 'MMM dd, yyyy')} at {visit.scheduled_time}
-                              </p>
+            {/* Smart Note Popup */}
+            <SlidePopup open={showSmartNotePopup} onOpenChange={(open) => {
+              setShowSmartNotePopup(open);
+              if (!open) {
+                setSelectedVisit(null);
+                resetNoteForm();
+              }
+            }}>
+              <SlidePopupContent className="max-h-[90vh]">
+                <SlidePopupHeader>
+                  <SlidePopupTitle>Create Smart Note</SlidePopupTitle>
+                  <SlidePopupDescription>
+                    Let AI help you create comprehensive clinical notes
+                  </SlidePopupDescription>
+                </SlidePopupHeader>
+                <SlidePopupBody>
+                  {/* Visit Selection */}
+                  {!selectedVisit && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Visit</h3>
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {visits.filter(v => !v.note).map((visit) => (
+                          <button
+                            key={visit.id}
+                            onClick={() => setSelectedVisit(visit)}
+                            className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-gray-900 text-sm">{formatVisitType(visit.visit_type)}</p>
+                                <p className="text-xs text-gray-500">
+                                  {format(parseISO(visit.scheduled_date), 'MMM dd, yyyy')} at {visit.scheduled_time}
+                                </p>
+                              </div>
+                              <Plus className="h-4 w-4 text-gray-400" />
                             </div>
-                            <Plus className="h-4 w-4 text-gray-400" />
-                          </div>
-                        </button>
-                      ))}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {selectedVisit && (
-                  <>
-                    <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                      <p className="font-medium text-blue-900 text-sm">
-                        Selected Visit: {formatVisitType(selectedVisit.visit_type)}
-                      </p>
-                      <p className="text-blue-700 text-xs">
-                        {format(parseISO(selectedVisit.scheduled_date), 'MMM dd, yyyy')} at {selectedVisit.scheduled_time}
-                      </p>
-                    </div>
+                  {selectedVisit && (
+                    <>
+                      <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                        <p className="font-medium text-blue-900 text-sm">
+                          Selected Visit: {formatVisitType(selectedVisit.visit_type)}
+                        </p>
+                        <p className="text-blue-700 text-xs">
+                          {format(parseISO(selectedVisit.scheduled_date), 'MMM dd, yyyy')} at {selectedVisit.scheduled_time}
+                        </p>
+                      </div>
 
-                    {useSmartNotes ? (
                       <SmartNoteInput
                         visitId={selectedVisit.id}
-                        onNoteCreated={handleSmartNoteCreated}
+                        onNoteCreated={() => {
+                          setShowSmartNotePopup(false);
+                          setSelectedVisit(null);
+                          fetchVisits();
+                        }}
                         onCancel={() => {
-                          setShowNewNote(false);
+                          setShowSmartNotePopup(false);
                           setSelectedVisit(null);
                           resetNoteForm();
                         }}
                       />
-                    ) : (
-                      <div className="bg-white rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold text-gray-900">Manual Note Entry</h3>
+                    </>
+                  )}
+                </SlidePopupBody>
+              </SlidePopupContent>
+            </SlidePopup>
+
+            {/* Manual Note Popup */}
+            <SlidePopup open={showManualNotePopup} onOpenChange={(open) => {
+              setShowManualNotePopup(open);
+              if (!open) {
+                setSelectedVisit(null);
+                resetNoteForm();
+              }
+            }}>
+              <SlidePopupContent className="max-h-[90vh]">
+                <SlidePopupHeader>
+                  <SlidePopupTitle>Create Manual Note</SlidePopupTitle>
+                  <SlidePopupDescription>
+                    Create a clinical note with structured format
+                  </SlidePopupDescription>
+                </SlidePopupHeader>
+                <SlidePopupBody>
+                  {/* Visit Selection */}
+                  {!selectedVisit && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Visit</h3>
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {visits.filter(v => !v.note).map((visit) => (
                           <button
-                            onClick={() => {
-                              setShowNewNote(false);
-                              setSelectedVisit(null);
-                              resetNoteForm();
-                            }}
-                            className="text-gray-400 hover:text-gray-600"
+                            key={visit.id}
+                            onClick={() => setSelectedVisit(visit)}
+                            className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                           >
-                            ×
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-gray-900 text-sm">{formatVisitType(visit.visit_type)}</p>
+                                <p className="text-xs text-gray-500">
+                                  {format(parseISO(visit.scheduled_date), 'MMM dd, yyyy')} at {visit.scheduled_time}
+                                </p>
+                              </div>
+                              <Plus className="h-4 w-4 text-gray-400" />
+                            </div>
                           </button>
-                        </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                        {/* Note Type Selection */}
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Note Type</label>
-                          <div className="grid grid-cols-3 gap-2">
-                            {(['SOAP', 'DAP', 'PROGRESS'] as const).map((type) => (
-                              <button
-                                key={type}
-                                onClick={() => setNoteType(type)}
-                                className={`p-2 border rounded-lg text-xs transition-colors ${
-                                  noteType === type
-                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                }`}
-                              >
-                                <div className="font-medium">{type}</div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                  {selectedVisit && (
+                    <>
+                      <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                        <p className="font-medium text-blue-900 text-sm">
+                          Selected Visit: {formatVisitType(selectedVisit.visit_type)}
+                        </p>
+                        <p className="text-blue-700 text-xs">
+                          {format(parseISO(selectedVisit.scheduled_date), 'MMM dd, yyyy')} at {selectedVisit.scheduled_time}
+                        </p>
+                      </div>
 
-                        {/* Note Content */}
-                        <div className="space-y-4">
-                          {noteType === 'SOAP' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Subjective</label>
-                                <textarea
-                                  value={noteData.soap.subjective}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    soap: { ...noteData.soap, subjective: e.target.value }
-                                  })}
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Patient's symptoms, pain levels..."
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
-                                <textarea
-                                  value={noteData.soap.objective}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    soap: { ...noteData.soap, objective: e.target.value }
-                                  })}
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Clinical findings, measurements..."
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Assessment</label>
-                                <textarea
-                                  value={noteData.soap.assessment}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    soap: { ...noteData.soap, assessment: e.target.value }
-                                  })}
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Clinical judgment, diagnosis..."
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
-                                <textarea
-                                  value={noteData.soap.plan}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    soap: { ...noteData.soap, plan: e.target.value }
-                                  })}
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Treatment plan, next steps..."
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {noteType === 'DAP' && (
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
-                                <textarea
-                                  value={noteData.dap.data}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    dap: { ...noteData.dap, data: e.target.value }
-                                  })}
-                                  rows={4}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Objective data, measurements..."
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Assessment</label>
-                                <textarea
-                                  value={noteData.dap.assessment}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    dap: { ...noteData.dap, assessment: e.target.value }
-                                  })}
-                                  rows={4}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Clinical assessment..."
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
-                                <textarea
-                                  value={noteData.dap.plan}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    dap: { ...noteData.dap, plan: e.target.value }
-                                  })}
-                                  rows={4}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Treatment plan..."
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {noteType === 'PROGRESS' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Progress</label>
-                                <textarea
-                                  value={noteData.progress.progress}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    progress: { ...noteData.progress, progress: e.target.value }
-                                  })}
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Patient's progress..."
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Interventions</label>
-                                <textarea
-                                  value={noteData.progress.interventions}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    progress: { ...noteData.progress, interventions: e.target.value }
-                                  })}
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Treatments provided..."
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Response</label>
-                                <textarea
-                                  value={noteData.progress.response}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    progress: { ...noteData.progress, response: e.target.value }
-                                  })}
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Patient's response..."
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
-                                <textarea
-                                  value={noteData.progress.plan}
-                                  onChange={(e) => setNoteData({
-                                    ...noteData,
-                                    progress: { ...noteData.progress, plan: e.target.value }
-                                  })}
-                                  rows={3}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                  placeholder="Future treatment plan..."
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Additional Notes - Separate Section */}
-                          <div className="border-t border-gray-200 pt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
-                            <textarea
-                              value={additionalNotes}
-                              onChange={(e) => setAdditionalNotes(e.target.value)}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                              placeholder="Any additional observations, recommendations, or notes..."
-                            />
-                          </div>
-
-                          {/* Save Button */}
-                          <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                      {/* Note Type Selection */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Note Type</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(['SOAP', 'DAP', 'PROGRESS'] as const).map((type) => (
                             <button
-                              onClick={() => {
-                                setShowNewNote(false);
-                                setSelectedVisit(null);
-                                resetNoteForm();
-                              }}
-                              className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
+                              key={type}
+                              onClick={() => setNoteType(type)}
+                              className={`p-2 border rounded-lg text-xs transition-colors ${
+                                noteType === type
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
                             >
-                              Cancel
+                              <div className="font-medium">{type}</div>
                             </button>
-                            <button
-                              onClick={handleCreateNote}
-                              disabled={!selectedVisit || isCreatingNote}
-                              className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {isCreatingNote ? (
-                                <>
-                                  <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full"></div>
-                                  Saving...
-                                </>
-                              ) : (
-                                <>
-                                  <Save className="h-4 w-4 mr-2" />
-                                  Save Note
-                                </>
-                              )}
-                            </button>
-                          </div>
+                          ))}
                         </div>
                       </div>
-                    )}
-                  </>
+
+                      {/* Note Content */}
+                      <div className="space-y-4">
+                        {noteType === 'SOAP' && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Subjective</label>
+                              <textarea
+                                value={noteData.soap.subjective}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  soap: { ...noteData.soap, subjective: e.target.value }
+                                })}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Patient's symptoms, pain levels..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
+                              <textarea
+                                value={noteData.soap.objective}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  soap: { ...noteData.soap, objective: e.target.value }
+                                })}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Clinical findings, measurements..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Assessment</label>
+                              <textarea
+                                value={noteData.soap.assessment}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  soap: { ...noteData.soap, assessment: e.target.value }
+                                })}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Clinical judgment, diagnosis..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+                              <textarea
+                                value={noteData.soap.plan}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  soap: { ...noteData.soap, plan: e.target.value }
+                                })}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Treatment plan, next steps..."
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {noteType === 'DAP' && (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
+                              <textarea
+                                value={noteData.dap.data}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  dap: { ...noteData.dap, data: e.target.value }
+                                })}
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Objective data, measurements..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Assessment</label>
+                              <textarea
+                                value={noteData.dap.assessment}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  dap: { ...noteData.dap, assessment: e.target.value }
+                                })}
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Clinical assessment..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+                              <textarea
+                                value={noteData.dap.plan}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  dap: { ...noteData.dap, plan: e.target.value }
+                                })}
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Treatment plan..."
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {noteType === 'PROGRESS' && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Progress</label>
+                              <textarea
+                                value={noteData.progress.progress}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  progress: { ...noteData.progress, progress: e.target.value }
+                                })}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Patient's progress..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Interventions</label>
+                              <textarea
+                                value={noteData.progress.interventions}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  progress: { ...noteData.progress, interventions: e.target.value }
+                                })}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Treatments provided..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Response</label>
+                              <textarea
+                                value={noteData.progress.response}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  progress: { ...noteData.progress, response: e.target.value }
+                                })}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Patient's response..."
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+                              <textarea
+                                value={noteData.progress.plan}
+                                onChange={(e) => setNoteData({
+                                  ...noteData,
+                                  progress: { ...noteData.progress, plan: e.target.value }
+                                })}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Future treatment plan..."
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Additional Notes - Separate Section */}
+                        <div className="border-t border-gray-200 pt-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                          <textarea
+                            value={additionalNotes}
+                            onChange={(e) => setAdditionalNotes(e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            placeholder="Any additional observations, recommendations, or notes..."
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </SlidePopupBody>
+                {selectedVisit && (
+                  <SlidePopupFooter>
+                    <button
+                      onClick={() => {
+                        setShowManualNotePopup(false);
+                        setSelectedVisit(null);
+                        resetNoteForm();
+                      }}
+                      className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await handleCreateNote();
+                        if (!isCreatingNote) {
+                          setShowManualNotePopup(false);
+                        }
+                      }}
+                      disabled={!selectedVisit || isCreatingNote}
+                      className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isCreatingNote ? (
+                        <>
+                          <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Note
+                        </>
+                      )}
+                    </button>
+                  </SlidePopupFooter>
                 )}
-              </div>
-            )}
+              </SlidePopupContent>
+            </SlidePopup>
+
           </div>
         </div>
       </div>
