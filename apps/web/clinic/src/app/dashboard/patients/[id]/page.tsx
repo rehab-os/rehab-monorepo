@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import SmartNoteInput from '../../../../components/notes/SmartNoteInput';
+import NutritionSuggestions from '../../../../components/nutrition/NutritionSuggestions';
 import {
   SlidePopup,
   SlidePopupContent,
@@ -470,6 +471,27 @@ export default function PatientDetailsPage() {
                   <p className="text-xs text-gray-500">No current medications</p>
                 )}
               </div>
+            </div>
+
+            {/* Nutrition Suggestions */}
+            <div className="mt-4">
+              <NutritionSuggestions 
+                patientData={{
+                  age: calculateAge(patient.date_of_birth),
+                  gender: patient.gender === 'M' ? 'Male' : patient.gender === 'F' ? 'Female' : 'Other',
+                  allergies: patient.allergies,
+                  currentMedications: patient.current_medications,
+                  medicalHistory: patient.medical_history,
+                  chiefComplaints: visits.filter(v => v.chief_complaint).map(v => v.chief_complaint!).slice(0, 5),
+                  recentNotes: visits.filter(v => v.note).slice(0, 3).map(v => {
+                    const noteData = v.note?.note_data as any;
+                    if (v.note?.note_type === 'SOAP') {
+                      return `${noteData.subjective || ''} ${noteData.assessment || ''}`;
+                    }
+                    return JSON.stringify(noteData);
+                  }).join(' ')
+                }}
+              />
             </div>
           </div>
 

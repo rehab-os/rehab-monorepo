@@ -317,6 +317,12 @@ class ApiManager {
         const url = BASE_URL + ENDPOINTS.GENERATE_NOTE()
         return ApiMethods.post(url, data)
     }
+
+    // Nutrition Plan Generation
+    static generateNutritionPlan = (data: { prompt: string }) => {
+        const url = BASE_URL + ENDPOINTS.GENERATE_NUTRITION_PLAN()
+        return ApiMethods.post(url, data)
+    }
 }
 
 export default ApiManager

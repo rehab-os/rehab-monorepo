@@ -27,6 +27,7 @@ import { PatientsController } from './controllers/patients.controller';
 import { PhysiotherapistProfileController } from './controllers/physiotherapist-profile.controller';
 import { AudioController } from './controllers/audio.controller';
 import { NotesController } from './controllers/notes.controller';
+import { NutritionController } from './controllers/nutrition.controller';
 // import { AppointmentsController } from './controllers/appointments.controller';
 
 // All your services
@@ -41,6 +42,7 @@ import { PatientsService } from './services/patients.service';
 import { PhysiotherapistProfileService } from './services/physiotherapist-profile.service';
 import { AudioService } from './services/audio.service';
 import { NotesService } from './services/notes.service';
+import { NutritionService } from './services/nutrition.service';
 // import { AppointmentsService } from './services/appointments.service';
 
 // Import all entities from database library
@@ -172,6 +174,7 @@ import { JwtModule } from '@nestjs/jwt';
     PhysiotherapistProfileController,
     AudioController,
     NotesController,
+    NutritionController,
     // AppointmentsController,
   ],
 
@@ -189,6 +192,7 @@ import { JwtModule } from '@nestjs/jwt';
     PhysiotherapistProfileService,
     AudioService,
     NotesService,
+    NutritionService,
     // AppointmentsService,
 
     // ========== DEPENDENCY INJECTION ==========

@@ -97,6 +97,9 @@ export const ENDPOINTS = {
 
     // Notes Generation
     GENERATE_NOTE: () => 'notes/generate',
+
+    // Nutrition
+    GENERATE_NUTRITION_PLAN: () => 'nutrition/generate',
 }
 
 // export default ENDPOINTS
