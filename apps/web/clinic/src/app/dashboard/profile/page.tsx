@@ -26,8 +26,13 @@ import {
   Edit,
   Trash2,
   Save,
-  X
+  X,
+  Search,
+  Filter
 } from 'lucide-react';
+
+// Import database data
+import machinesData from '../../../../../../../database/machines/machines.json';
 
 // Constants for dropdowns
 const SPECIALIZATIONS = [
@@ -37,21 +42,35 @@ const SPECIALIZATIONS = [
 
 const EXPERIENCE_LEVELS = ['fresher', 'junior', 'senior', 'expert'];
 
+// Comprehensive technique categories from physiotherapy practice
 const TECHNIQUE_CATEGORIES = [
   'manual_therapy', 'exercise_therapy', 'electrotherapy', 'hydrotherapy',
   'thermotherapy', 'cryotherapy', 'acupuncture', 'dry_needling',
   'massage_therapy', 'mobilization', 'manipulation', 'soft_tissue',
-  'trigger_point', 'myofascial_release', 'craniosacral', 'neural_mobilization'
+  'trigger_point', 'myofascial_release', 'craniosacral', 'neural_mobilization',
+  'pnf_techniques', 'joint_mobilization', 'spinal_manipulation', 'mulligan_technique',
+  'maitland_technique', 'kaltenborn_technique', 'mcconnell_taping', 'kinesio_taping',
+  'instrument_assisted_soft_tissue', 'cupping_therapy', 'gua_sha',
+  'fascial_release', 'strain_counterstrain', 'positional_release'
 ];
 
 const PROFICIENCY_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
 
+// Get machine names from database
+const AVAILABLE_MACHINES = machinesData.machines.map(machine => ({
+  name: machine.name,
+  type: machine.type,
+  usedIn: machine.usedIn
+}));
+
 const MACHINE_CATEGORIES = [
-  'electrotherapy', 'ultrasound', 'laser_therapy', 'tens_unit', 'ems_unit',
-  'interferential', 'shortwave_diathermy', 'microwave_diathermy', 'paraffin_bath',
-  'ice_machine', 'exercise_equipment', 'treadmill', 'exercise_bike',
-  'weight_training', 'balance_trainer', 'traction_unit', 'cpm_machine',
-  'biofeedback', 'gait_trainer', 'parallel_bars'
+  'Electrotherapy Machine',
+  'Manual Therapy Equipment', 
+  'Exercise Equipment',
+  'Specialized Rehabilitation Equipment',
+  'Heat and Cold Therapy',
+  'Assessment Tools',
+  'Hydrotherapy Equipment'
 ];
 
 const COMPETENCY_LEVELS = ['basic', 'intermediate', 'advanced', 'certified'];
@@ -164,6 +183,11 @@ export default function ProfilePage() {
   const [showTechniqueModal, setShowTechniqueModal] = useState(false);
   const [showMachineModal, setShowMachineModal] = useState(false);
   const [showWorkshopModal, setShowWorkshopModal] = useState(false);
+
+  // Search states
+  const [machineSearchQuery, setMachineSearchQuery] = useState('');
+  const [selectedMachineCategory, setSelectedMachineCategory] = useState('');
+  const [techniqueSearchQuery, setTechniqueSearchQuery] = useState('');
 
   // Form states for modals
   const [newEducation, setNewEducation] = useState<Education>({
@@ -468,11 +492,11 @@ export default function ProfilePage() {
                     </Select>
                   ) : null}
                   {profile.specializations?.map((spec, index) => (
-                    <Badge key={index} variant="default" className="flex items-center gap-1">
+                    <Badge key={index} variant="default" className="flex items-center gap-1 bg-healui-physio text-white border-healui-physio hover:bg-healui-physio/90">
                       {formatSpecialization(spec)}
                       {isEditing && (
                         <X 
-                          className="h-3 w-3 cursor-pointer" 
+                          className="h-3 w-3 cursor-pointer hover:text-red-200" 
                           onClick={() => setProfile({
                             ...profile, 
                             specializations: profile.specializations?.filter((_, i) => i !== index) || []
@@ -651,48 +675,171 @@ export default function ProfilePage() {
                     Add Technique
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
                   <DialogHeader>
-                    <DialogTitle>Add Technique</DialogTitle>
+                    <DialogTitle>Add Physiotherapy Technique</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Technique Name</Label>
+                  
+                  <div className="flex-1 overflow-y-auto space-y-4">
+                    {/* Search Section */}
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <Label>Search Techniques</Label>
+                      <div className="relative mt-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="Search for techniques..."
+                          value={techniqueSearchQuery}
+                          onChange={(e) => setTechniqueSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Technique Categories Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
+                      {TECHNIQUE_CATEGORIES
+                        .filter(technique => 
+                          techniqueSearchQuery === '' || 
+                          technique.toLowerCase().includes(techniqueSearchQuery.toLowerCase())
+                        )
+                        .map((technique, index) => (
+                        <div 
+                          key={index} 
+                          className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-healui-physio hover:bg-healui-physio/5 ${
+                            newTechnique.technique_name === technique ? 'border-healui-physio bg-healui-physio/10' : ''
+                          }`}
+                          onClick={() => setNewTechnique({
+                            ...newTechnique,
+                            technique_name: technique,
+                            category: technique.includes('manual') ? 'manual_therapy' : 
+                                     technique.includes('exercise') ? 'exercise_therapy' :
+                                     technique.includes('electro') ? 'electrotherapy' :
+                                     technique.includes('tape') || technique.includes('taping') ? 'taping' :
+                                     technique.includes('massage') ? 'massage_therapy' :
+                                     technique.includes('mobilization') || technique.includes('manipulation') ? 'joint_techniques' :
+                                     'manual_therapy'
+                          })}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 capitalize">
+                                {formatSpecialization(technique)}
+                              </h4>
+                              <p className="text-xs text-gray-500 mt-1 capitalize">
+                                {technique.includes('manual') ? 'Manual Therapy' : 
+                                 technique.includes('exercise') ? 'Exercise Therapy' :
+                                 technique.includes('electro') ? 'Electrotherapy' :
+                                 technique.includes('tape') || technique.includes('taping') ? 'Taping Technique' :
+                                 technique.includes('massage') ? 'Massage Therapy' :
+                                 technique.includes('mobilization') || technique.includes('manipulation') ? 'Joint Techniques' :
+                                 'Manual Therapy'}
+                              </p>
+                            </div>
+                            {newTechnique.technique_name === technique && (
+                              <div className="w-4 h-4 bg-healui-physio rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Custom Technique Input */}
+                    <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                      <Label>Or add a custom technique</Label>
                       <Input
-                        value={newTechnique.technique_name}
-                        onChange={(e) => setNewTechnique({...newTechnique, technique_name: e.target.value})}
+                        placeholder="Enter custom technique name..."
+                        value={newTechnique.technique_name.startsWith('custom_') ? newTechnique.technique_name.replace('custom_', '') : ''}
+                        onChange={(e) => setNewTechnique({
+                          ...newTechnique,
+                          technique_name: e.target.value ? `custom_${e.target.value}` : '',
+                          category: 'manual_therapy'
+                        })}
+                        className="mt-1"
                       />
                     </div>
-                    <div>
-                      <Label>Category</Label>
-                      <Select value={newTechnique.category} onValueChange={(value) => setNewTechnique({...newTechnique, category: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TECHNIQUE_CATEGORIES.map(cat => (
-                            <SelectItem key={cat} value={cat}>{formatSpecialization(cat)}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Proficiency Level</Label>
-                      <Select value={newTechnique.proficiency_level} onValueChange={(value) => setNewTechnique({...newTechnique, proficiency_level: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PROFICIENCY_LEVELS.map(level => (
-                            <SelectItem key={level} value={level}>{formatSpecialization(level)}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+
+                    {/* Selected Technique Details */}
+                    {newTechnique.technique_name && (
+                      <div className="p-4 bg-healui-physio/5 border border-healui-physio/20 rounded-lg">
+                        <h3 className="font-semibold text-healui-physio mb-2">
+                          Selected: {newTechnique.technique_name.startsWith('custom_') 
+                            ? newTechnique.technique_name.replace('custom_', '') 
+                            : formatSpecialization(newTechnique.technique_name)
+                          }
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Category</Label>
+                            <Select value={newTechnique.category} onValueChange={(value) => setNewTechnique({...newTechnique, category: value})}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="manual_therapy">Manual Therapy</SelectItem>
+                                <SelectItem value="exercise_therapy">Exercise Therapy</SelectItem>
+                                <SelectItem value="electrotherapy">Electrotherapy</SelectItem>
+                                <SelectItem value="taping">Taping Technique</SelectItem>
+                                <SelectItem value="massage_therapy">Massage Therapy</SelectItem>
+                                <SelectItem value="joint_techniques">Joint Techniques</SelectItem>
+                                <SelectItem value="soft_tissue">Soft Tissue</SelectItem>
+                                <SelectItem value="specialized">Specialized Technique</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Proficiency Level</Label>
+                            <Select value={newTechnique.proficiency_level} onValueChange={(value) => setNewTechnique({...newTechnique, proficiency_level: value})}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {PROFICIENCY_LEVELS.map(level => (
+                                  <SelectItem key={level} value={level}>{formatSpecialization(level)}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Years of Practice (Optional)</Label>
+                            <Input
+                              type="number"
+                              value={newTechnique.years_of_practice || ''}
+                              onChange={(e) => setNewTechnique({...newTechnique, years_of_practice: parseInt(e.target.value) || 0})}
+                              placeholder="0"
+                            />
+                          </div>
+                          <div>
+                            <Label>Certification Body (Optional)</Label>
+                            <Input
+                              value={newTechnique.certification_body || ''}
+                              onChange={(e) => setNewTechnique({...newTechnique, certification_body: e.target.value})}
+                              placeholder="e.g. IAOM, IPA, McKenzie"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Label>Description (Optional)</Label>
+                            <Textarea
+                              value={newTechnique.description || ''}
+                              onChange={(e) => setNewTechnique({...newTechnique, description: e.target.value})}
+                              placeholder="Describe your experience or specialization with this technique..."
+                              rows={2}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline" onClick={() => setShowTechniqueModal(false)}>Cancel</Button>
-                    <Button onClick={handleAddTechnique}>Add Technique</Button>
+                  
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button variant="outline" onClick={() => {
+                      setShowTechniqueModal(false);
+                      setTechniqueSearchQuery('');
+                    }}>Cancel</Button>
+                    <Button onClick={handleAddTechnique} disabled={!newTechnique.technique_name}>
+                      Add Technique
+                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -727,48 +874,174 @@ export default function ProfilePage() {
                     Add Machine
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
                   <DialogHeader>
-                    <DialogTitle>Add Machine</DialogTitle>
+                    <DialogTitle>Add Machine & Equipment</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Machine Name</Label>
-                      <Input
-                        value={newMachine.machine_name}
-                        onChange={(e) => setNewMachine({...newMachine, machine_name: e.target.value})}
-                      />
+                  
+                  <div className="flex-1 overflow-y-auto space-y-4">
+                    {/* Search and Filter Section */}
+                    <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex gap-3">
+                        <div className="flex-1">
+                          <Label>Search Machines</Label>
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Search by name or usage..."
+                              value={machineSearchQuery}
+                              onChange={(e) => setMachineSearchQuery(e.target.value)}
+                              className="pl-10"
+                            />
+                          </div>
+                        </div>
+                        <div className="w-64">
+                          <Label>Filter by Category</Label>
+                          <Select value={selectedMachineCategory} onValueChange={setSelectedMachineCategory}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="All Categories" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">All Categories</SelectItem>
+                              {MACHINE_CATEGORIES.map(cat => (
+                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <Label>Category</Label>
-                      <Select value={newMachine.category} onValueChange={(value) => setNewMachine({...newMachine, category: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {MACHINE_CATEGORIES.map(cat => (
-                            <SelectItem key={cat} value={cat}>{formatSpecialization(cat)}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+
+                    {/* Machine Selection Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                      {AVAILABLE_MACHINES
+                        .filter(machine => {
+                          const matchesSearch = machineSearchQuery === '' || 
+                            machine.name.toLowerCase().includes(machineSearchQuery.toLowerCase()) ||
+                            machine.usedIn.some(use => use.toLowerCase().includes(machineSearchQuery.toLowerCase()));
+                          const matchesCategory = selectedMachineCategory === '' || machine.type === selectedMachineCategory;
+                          return matchesSearch && matchesCategory;
+                        })
+                        .map((machine, index) => (
+                        <div 
+                          key={index} 
+                          className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-healui-physio hover:bg-healui-physio/5 ${
+                            newMachine.machine_name === machine.name ? 'border-healui-physio bg-healui-physio/10' : ''
+                          }`}
+                          onClick={() => setNewMachine({
+                            ...newMachine,
+                            machine_name: machine.name,
+                            category: machine.type
+                          })}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{machine.name}</h4>
+                              <p className="text-xs text-gray-500 mb-2">{machine.type}</p>
+                              <div className="flex flex-wrap gap-1">
+                                {machine.usedIn.slice(0, 3).map((use, useIndex) => (
+                                  <Badge key={useIndex} variant="secondary" className="text-xs">
+                                    {use}
+                                  </Badge>
+                                ))}
+                                {machine.usedIn.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{machine.usedIn.length - 3} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <Label>Competency Level</Label>
-                      <Select value={newMachine.competency_level} onValueChange={(value) => setNewMachine({...newMachine, competency_level: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COMPETENCY_LEVELS.map(level => (
-                            <SelectItem key={level} value={level}>{formatSpecialization(level)}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+
+                    {/* Selected Machine Details */}
+                    {newMachine.machine_name && (
+                      <div className="p-4 bg-healui-physio/5 border border-healui-physio/20 rounded-lg">
+                        <h3 className="font-semibold text-healui-physio mb-2">Selected: {newMachine.machine_name}</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Competency Level</Label>
+                            <Select value={newMachine.competency_level} onValueChange={(value) => setNewMachine({...newMachine, competency_level: value})}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {COMPETENCY_LEVELS.map(level => (
+                                  <SelectItem key={level} value={level}>{formatSpecialization(level)}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Years of Experience</Label>
+                            <Input
+                              type="number"
+                              value={newMachine.years_of_experience || ''}
+                              onChange={(e) => setNewMachine({...newMachine, years_of_experience: parseInt(e.target.value) || 0})}
+                              placeholder="0"
+                            />
+                          </div>
+                          <div>
+                            <Label>Manufacturer (Optional)</Label>
+                            <Input
+                              value={newMachine.manufacturer || ''}
+                              onChange={(e) => setNewMachine({...newMachine, manufacturer: e.target.value})}
+                              placeholder="e.g. Chattanooga, Enraf-Nonius"
+                            />
+                          </div>
+                          <div>
+                            <Label>Model (Optional)</Label>
+                            <Input
+                              value={newMachine.model || ''}
+                              onChange={(e) => setNewMachine({...newMachine, model: e.target.value})}
+                              placeholder="Model number or name"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={newMachine.is_certified || false}
+                                onChange={(e) => setNewMachine({...newMachine, is_certified: e.target.checked})}
+                              />
+                              <span>I am certified to use this equipment</span>
+                            </label>
+                          </div>
+                          {newMachine.is_certified && (
+                            <div className="col-span-2">
+                              <Label>Certification Details (Optional)</Label>
+                              <Input
+                                value={newMachine.certification_body || ''}
+                                onChange={(e) => setNewMachine({...newMachine, certification_body: e.target.value})}
+                                placeholder="Certification body or course name"
+                              />
+                            </div>
+                          )}
+                          <div className="col-span-2">
+                            <Label>Notes (Optional)</Label>
+                            <Textarea
+                              value={newMachine.notes || ''}
+                              onChange={(e) => setNewMachine({...newMachine, notes: e.target.value})}
+                              placeholder="Additional notes about your experience with this equipment..."
+                              rows={2}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="outline" onClick={() => setShowMachineModal(false)}>Cancel</Button>
-                    <Button onClick={handleAddMachine}>Add Machine</Button>
+                  
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button variant="outline" onClick={() => {
+                      setShowMachineModal(false);
+                      setMachineSearchQuery('');
+                      setSelectedMachineCategory('');
+                    }}>Cancel</Button>
+                    <Button onClick={handleAddMachine} disabled={!newMachine.machine_name}>
+                      Add Machine
+                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>

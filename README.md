@@ -16,7 +16,7 @@ test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
 npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
 ```
 
-## Run tasks
+## Run tasks 
 
 To build the library use:
 

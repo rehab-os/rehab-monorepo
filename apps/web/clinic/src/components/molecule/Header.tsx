@@ -13,7 +13,8 @@ import {
   HelpCircle,
   ChevronDown,
   Menu,
-  X
+  X,
+  Heart
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -38,14 +39,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
 
   return (
     <header className="glass border-b border-border-color sticky top-0 z-40 shadow-sm">
-      <div className="px-4 sm:px-6 py-3">
+      <div className="px-3 sm:px-6 py-2 sm:py-3">
         <div className="flex items-center justify-between">
           {/* Left Section - Brand */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Mobile Menu Toggle */}
             <button
               onClick={onMenuToggle}
-              className="p-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 lg:hidden"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200 lg:hidden"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? (
@@ -55,29 +56,43 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
               )}
             </button>
 
-            {/* Healui.ai Brand */}
-            <div className="flex items-center">
-              <h1 className="text-2xl font-display font-bold bg-gradient-physio bg-clip-text text-transparent tracking-tight">
-                Healui.ai
-              </h1>
+            {/* Healui.ai Brand - Mobile First Design */}
+            <div className="flex items-center space-x-1.5 sm:space-x-2">
+              {/* Icon Logo */}
+              <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-gradient-physio rounded-lg shadow-sm">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              </div>
+              
+              {/* Text Logo - Responsive */}
+              <div className="flex flex-col">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-display font-bold bg-gradient-physio bg-clip-text text-transparent tracking-tight leading-none">
+                  Healui.ai
+                </h1>
+                {/* Optional tagline for larger screens */}
+                <span className="hidden lg:block text-xs text-text-light font-medium">
+                  Physiotherapy Management
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center space-x-3">
-            {/* Context Switcher */}
-            <ContextSwitcher />
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Context Switcher - Hidden on small mobile */}
+            <div className="hidden sm:block">
+              <ContextSwitcher />
+            </div>
 
             {/* User Menu */}
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200"
+                className="flex items-center space-x-1 sm:space-x-2 p-1.5 sm:p-2 rounded-lg hover:bg-healui-physio/10 transition-all duration-200"
               >
-                <div className="h-8 w-8 rounded-full bg-gradient-physio flex items-center justify-center text-white font-semibold text-sm shadow-physio">
+                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-gradient-physio flex items-center justify-center text-white font-semibold text-xs sm:text-sm shadow-physio">
                   {userData?.name?.split(' ').map(n => n[0]).join('') || 'U'}
                 </div>
-                <ChevronDown className="h-4 w-4 text-text-light" />
+                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-text-light hidden sm:block" />
               </button>
 
               {/* User Dropdown */}
@@ -89,6 +104,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen = false }) => 
                       {userData?.organization?.name}
                     </p>
                   </div>
+                  
+                  {/* Context Switcher for Mobile - Only show on small screens */}
+                  <div className="sm:hidden p-3 border-b border-border-color">
+                    <ContextSwitcher />
+                  </div>
+                  
                   <div className="p-2">
                     {isPhysiotherapist ? (
                       <button 

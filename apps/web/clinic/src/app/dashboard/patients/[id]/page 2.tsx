@@ -349,18 +349,11 @@ export default function PatientDetailsPage() {
             {/* Quick Actions */}
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setShowTreatmentProtocol(true)}
-                className="btn-primary text-sm px-4 py-2 inline-flex items-center"
-              >
-                <Target className="h-4 w-4 mr-1" />
-                Treatment Protocol
-              </button>
-              <button
                 onClick={() => {
                   setSelectedVisit(null);
                   setShowSmartNotePopup(true);
                 }}
-                className="btn-secondary text-sm px-4 py-2 inline-flex items-center"
+                className="btn-primary text-sm px-4 py-2 inline-flex items-center"
               >
                 <Sparkles className="h-4 w-4 mr-1" />
                 Smart Note
@@ -979,13 +972,6 @@ export default function PatientDetailsPage() {
                 )}
               </SlidePopupContent>
             </SlidePopup>
-
-            {/* Treatment Protocol Modal */}
-            <TreatmentProtocolModal
-              isOpen={showTreatmentProtocol}
-              onClose={() => setShowTreatmentProtocol(false)}
-              patient={patient}
-            />
 
           </div>
         </div>
