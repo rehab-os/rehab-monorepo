@@ -84,7 +84,7 @@ export default function AnatomyCard({ item, category, searchResult, onClick }: A
     <motion.div
       whileHover={{ y: -4 }}
       onClick={onClick}
-      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
+      className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer card-interactive touch-manipulation tap-highlight-transparent"
       style={{
         boxShadow: `0 4px 6px -1px ${theme.colors.primary[600]}20, 0 2px 4px -1px ${theme.colors.primary[600]}10`
       }}

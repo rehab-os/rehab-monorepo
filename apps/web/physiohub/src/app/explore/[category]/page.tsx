@@ -1,14 +1,18 @@
 'use client'
 
 import { useEffect, useState, use } from 'react'
+
+export const dynamic = 'force-dynamic'
 import { motion } from 'framer-motion'
-import { ChevronDown, Search, Filter, ArrowLeft, BookOpen, Zap, Brain, Activity } from 'lucide-react'
+import { ChevronDown, Search, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { loadData, AnatomyType } from '@/lib/data'
 import { FuzzySearch, getSearchConfig, SearchResult } from '@/lib/search'
 import AnatomyCard from '@/components/AnatomyCard'
 import DetailModal from '@/components/DetailModal'
+import LoadingCard from '@/components/LoadingCard'
+import LoadingSpinner from '@/components/LoadingSpinner'
 import { theme } from '@/lib/theme'
 
 export default function ExplorePage({ params }: { params: Promise<{ category: string }> }) {
@@ -20,7 +24,6 @@ export default function ExplorePage({ params }: { params: Promise<{ category: st
   const [searchQuery, setSearchQuery] = useState('')
   const [filterBy, setFilterBy] = useState('')
   const [loading, setLoading] = useState(true)
-  const [searchResults, setSearchResults] = useState<SearchResult<any>[]>([])
   const [fuzzySearch, setFuzzySearch] = useState<FuzzySearch<any> | null>(null)
 
   const categoryTitles: Record<string, string> = {
@@ -46,7 +49,6 @@ export default function ExplorePage({ params }: { params: Promise<{ category: st
       // Initial results (no search query)
       const initialResults = result.map(item => ({ item, score: 1, matches: [] }))
       setFilteredData(initialResults)
-      setSearchResults(initialResults)
       setLoading(false)
     }
     fetchData()
@@ -81,7 +83,6 @@ export default function ExplorePage({ params }: { params: Promise<{ category: st
       })
     }
 
-    setSearchResults(results)
     setFilteredData(results)
   }, [searchQuery, filterBy, data, fuzzySearch, resolvedParams.category])
 
@@ -95,39 +96,39 @@ export default function ExplorePage({ params }: { params: Promise<{ category: st
   }
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: theme.colors.primary[50] }}>
+    <main className="min-h-screen overflow-x-hidden" style={{ backgroundColor: theme.colors.primary[50] }}>
       <div 
-        className="sticky top-0 z-40 bg-white border-b"
+        className="sticky top-0 z-40 bg-white border-b shadow-sm"
         style={{ borderColor: theme.colors.primary[100] }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <Link 
               href="/" 
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              className="flex items-center space-x-1 sm:space-x-2 hover:opacity-80 transition-opacity p-2 -m-2 rounded-lg active:bg-gray-100"
               style={{ color: theme.colors.primary[600] }}
             >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back</span>
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-sm sm:text-base">Back</span>
             </Link>
-            <h1 className="text-xl font-semibold" style={{ color: theme.colors.primary[900] }}>
+            <h1 className="text-lg sm:text-xl font-semibold text-center flex-1 px-4" style={{ color: theme.colors.primary[900] }}>
               {categoryTitles[resolvedParams.category]}
             </h1>
-            <div className="w-20" />
+            <div className="w-12 sm:w-20" />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 mb-6 sm:mb-8">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 sm:h-5 sm:w-5" />
             <input
               type="text"
               placeholder={`Search ${categoryTitles[resolvedParams.category].toLowerCase()}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
+              className="w-full pl-9 sm:pl-10 pr-4 py-3 sm:py-2 border rounded-xl sm:rounded-lg focus:outline-none focus:ring-2 text-base transition-all duration-200"
               style={{
                 borderColor: theme.colors.primary[100],
                 '--tw-ring-color': theme.colors.primary[600]
@@ -136,11 +137,11 @@ export default function ExplorePage({ params }: { params: Promise<{ category: st
           </div>
           
           {getFilterOptions().length > 0 && (
-            <div className="relative">
+            <div className="relative sm:flex-shrink-0">
               <select
                 value={filterBy}
                 onChange={(e) => setFilterBy(e.target.value)}
-                className="appearance-none bg-white border rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2"
+                className="appearance-none bg-white border rounded-xl sm:rounded-lg px-4 py-3 sm:py-2 pr-10 sm:pr-8 focus:outline-none focus:ring-2 w-full sm:w-auto text-base transition-all duration-200"
                 style={{
                   borderColor: theme.colors.primary[100],
                   '--tw-ring-color': theme.colors.primary[600]
@@ -151,49 +152,63 @@ export default function ExplorePage({ params }: { params: Promise<{ category: st
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+              <ChevronDown className="absolute right-3 sm:right-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
             </div>
           )}
         </div>
 
         {searchQuery && (
-          <div 
-            className="mb-6 p-4 rounded-lg border"
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl border"
             style={{
               backgroundColor: theme.colors.primary[50],
               borderColor: theme.colors.primary[100]
             }}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <p className="text-sm font-medium" style={{ color: theme.colors.primary[900] }}>
+                <p className="text-sm sm:text-base font-medium" style={{ color: theme.colors.primary[900] }}>
                   Found {filteredData.length} result{filteredData.length !== 1 ? 's' : ''} for "{searchQuery}"
                 </p>
                 {filteredData.length > 0 && (
-                  <p className="text-xs mt-1" style={{ color: theme.colors.primary[600] }}>
+                  <p className="text-xs sm:text-sm mt-1" style={{ color: theme.colors.primary[600] }}>
                     Showing results sorted by relevance
                   </p>
                 )}
               </div>
               {filteredData.length > 0 && (
-                <div className="text-xs" style={{ color: theme.colors.primary[600] }}>
+                <div className="text-xs sm:text-sm self-start sm:self-auto" style={{ color: theme.colors.primary[600] }}>
                   Avg. relevance: {Math.round(filteredData.reduce((acc, result) => acc + result.score, 0) / filteredData.length * 100)}%
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div 
-              className="animate-spin rounded-full h-12 w-12 border-b-2"
-              style={{ borderColor: theme.colors.primary[600] }}
-            ></div>
+          <div className="space-y-8">
+            <div className="flex justify-center">
+              <LoadingSpinner 
+                size="lg" 
+                color={theme.colors.primary[600]} 
+                text={`Loading ${categoryTitles[resolvedParams.category].toLowerCase()}...`} 
+              />
+            </div>
+            <motion.div 
+              className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {Array.from({ length: 6 }).map((_, index) => (
+                <LoadingCard key={index} />
+              ))}
+            </motion.div>
           </div>
         ) : (
           <motion.div 
-            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+            className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >

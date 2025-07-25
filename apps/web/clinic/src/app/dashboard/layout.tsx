@@ -12,6 +12,7 @@ import {
   Settings,
   Building2,
   UserPlus,
+  User,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -87,6 +88,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     {
       name: 'Profile',
       href: '/dashboard/profile',
+      icon: User,
+      show: true,
+    },
+    {
+      name: 'Settings',
+      href: '/dashboard/settings',
       icon: Settings,
       show: true,
     },

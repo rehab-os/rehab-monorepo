@@ -232,6 +232,9 @@ export class FuzzySearch<T> {
   }
 
   private normalizeString(str: string): string {
+    if (typeof str !== 'string') {
+      str = String(str || '')
+    }
     return str
       .toLowerCase()
       .normalize('NFD')
@@ -262,10 +265,10 @@ export const getSearchConfig = (category: string): SearchOptions => {
           { name: 'clinical_relevance', weight: 1.5 },
           { name: 'origin', weight: 1.2, getFn: (item) => Array.isArray(item.origin) ? item.origin.join(' ') : item.origin },
           { name: 'insertion', weight: 1.2, getFn: (item) => Array.isArray(item.insertion) ? item.insertion.join(' ') : item.insertion },
-          { name: 'actions.bilateral', weight: 1.0, getFn: (item) => item.actions?.bilateral?.join(' ') || '' },
-          { name: 'actions.unilateral', weight: 1.0, getFn: (item) => item.actions?.unilateral?.join(' ') || '' },
+          { name: 'actions.bilateral', weight: 1.0, getFn: (item) => Array.isArray(item.actions?.bilateral) ? item.actions.bilateral.join(' ') : item.actions?.bilateral || '' },
+          { name: 'actions.unilateral', weight: 1.0, getFn: (item) => Array.isArray(item.actions?.unilateral) ? item.actions.unilateral.join(' ') : item.actions?.unilateral || '' },
           { name: 'innervation.nerve', weight: 1.0 },
-          { name: 'common_conditions', weight: 1.0, getFn: (item) => item.common_conditions?.join(' ') || '' }
+          { name: 'common_conditions', weight: 1.0, getFn: (item) => Array.isArray(item.common_conditions) ? item.common_conditions.join(' ') : item.common_conditions || '' }
         ]
       }
 
@@ -278,9 +281,9 @@ export const getSearchConfig = (category: string): SearchOptions => {
           { name: 'region', weight: 2.0 },
           { name: 'attachments.origin', weight: 1.5 },
           { name: 'attachments.insertion', weight: 1.5 },
-          { name: 'primary_function', weight: 1.2, getFn: (item) => item.primary_function?.join(' ') || '' },
-          { name: 'common_injuries', weight: 1.0, getFn: (item) => item.common_injuries?.join(' ') || '' },
-          { name: 'clinical_tests', weight: 1.0, getFn: (item) => item.clinical_tests?.join(' ') || '' }
+          { name: 'primary_function', weight: 1.2, getFn: (item) => Array.isArray(item.primary_function) ? item.primary_function.join(' ') : item.primary_function || '' },
+          { name: 'common_injuries', weight: 1.0, getFn: (item) => Array.isArray(item.common_injuries) ? item.common_injuries.join(' ') : item.common_injuries || '' },
+          { name: 'clinical_tests', weight: 1.0, getFn: (item) => Array.isArray(item.clinical_tests) ? item.clinical_tests.join(' ') : item.clinical_tests || '' }
         ]
       }
 
@@ -292,7 +295,7 @@ export const getSearchConfig = (category: string): SearchOptions => {
           { name: 'latin_name', weight: 2.5 },
           { name: 'type', weight: 2.0 },
           { name: 'joint', weight: 2.0 },
-          { name: 'functions', weight: 1.5, getFn: (item) => item.functions?.join(' ') || '' }
+          { name: 'functions', weight: 1.5, getFn: (item) => Array.isArray(item.functions) ? item.functions.join(' ') : item.functions || '' }
         ]
       }
 
@@ -303,9 +306,9 @@ export const getSearchConfig = (category: string): SearchOptions => {
           { name: 'name', weight: 3.0 },
           { name: 'latin_name', weight: 2.5 },
           { name: 'region', weight: 2.0 },
-          { name: 'muscles_involved', weight: 1.8, getFn: (item) => item.muscles_involved?.join(' ') || '' },
+          { name: 'muscles_involved', weight: 1.8, getFn: (item) => Array.isArray(item.muscles_involved) ? item.muscles_involved.join(' ') : item.muscles_involved || '' },
           { name: 'insertion', weight: 1.5 },
-          { name: 'clinical_tests', weight: 1.0, getFn: (item) => item.clinical_tests?.join(' ') || '' }
+          { name: 'clinical_tests', weight: 1.0, getFn: (item) => Array.isArray(item.clinical_tests) ? item.clinical_tests.join(' ') : item.clinical_tests || '' }
         ]
       }
 
@@ -317,9 +320,9 @@ export const getSearchConfig = (category: string): SearchOptions => {
           { name: 'latin_name', weight: 2.5 },
           { name: 'nerve_roots', weight: 2.0 },
           { name: 'origin', weight: 1.8 },
-          { name: 'course', weight: 1.5, getFn: (item) => item.course?.join(' ') || '' },
-          { name: 'sensory_innervation', weight: 1.2, getFn: (item) => item.sensory_innervation?.join(' ') || '' },
-          { name: 'common_compression_sites', weight: 1.0, getFn: (item) => item.common_compression_sites?.join(' ') || '' }
+          { name: 'course', weight: 1.5, getFn: (item) => Array.isArray(item.course) ? item.course.join(' ') : item.course || '' },
+          { name: 'sensory_innervation', weight: 1.2, getFn: (item) => Array.isArray(item.sensory_innervation) ? item.sensory_innervation.join(' ') : item.sensory_innervation || '' },
+          { name: 'common_compression_sites', weight: 1.0, getFn: (item) => Array.isArray(item.common_compression_sites) ? item.common_compression_sites.join(' ') : item.common_compression_sites || '' }
         ]
       }
 
@@ -330,9 +333,9 @@ export const getSearchConfig = (category: string): SearchOptions => {
           { name: 'name', weight: 3.0 },
           { name: 'description', weight: 2.0 },
           { name: 'category', weight: 1.8 },
-          { name: 'muscle_groups', weight: 1.5, getFn: (item) => item.muscle_groups?.join(' ') || '' },
-          { name: 'clinical_applications', weight: 1.2, getFn: (item) => item.clinical_applications?.join(' ') || '' },
-          { name: 'equipment', weight: 0.8, getFn: (item) => item.equipment?.join(' ') || '' }
+          { name: 'muscle_groups', weight: 1.5, getFn: (item) => Array.isArray(item.muscle_groups) ? item.muscle_groups.join(' ') : item.muscle_groups || '' },
+          { name: 'clinical_applications', weight: 1.2, getFn: (item) => Array.isArray(item.clinical_applications) ? item.clinical_applications.join(' ') : item.clinical_applications || '' },
+          { name: 'equipment', weight: 0.8, getFn: (item) => Array.isArray(item.equipment) ? item.equipment.join(' ') : item.equipment || '' }
         ]
       }
 

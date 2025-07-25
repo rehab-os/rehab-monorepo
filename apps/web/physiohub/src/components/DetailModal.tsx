@@ -424,7 +424,7 @@ export default function DetailModal({ item, category, onClose }: DetailModalProp
             {Object.entries(item.components).map(([key, value]) => (
               <div key={key}>
                 <h4 className="font-medium text-gray-700 mb-2 capitalize">{key.replace(/_/g, ' ')}</h4>
-                {typeof value === 'object' ? (
+                {typeof value === 'object' && value !== null ? (
                   <div className="pl-4 space-y-1">
                     {Object.entries(value).map(([k, v]) => (
                       <div key={k} className="text-sm">
@@ -641,7 +641,7 @@ export default function DetailModal({ item, category, onClose }: DetailModalProp
             <button
               onClick={onClose}
               className="p-2 rounded-full transition-colors"
-              style={{ ':hover': { backgroundColor: theme.colors.gray[100] } }}
+              style={{}}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.colors.gray[100]}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >

@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
+
+export const dynamic = 'force-dynamic'
 import { motion } from 'framer-motion'
-import { Search, ArrowLeft, Filter, BookOpen, TrendingUp } from 'lucide-react'
+import { Search, ArrowLeft, BookOpen, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { loadData, AnatomyType } from '@/lib/data'

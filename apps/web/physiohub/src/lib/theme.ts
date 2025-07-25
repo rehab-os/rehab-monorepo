@@ -116,7 +116,7 @@ export const theme = {
 
 // Utility functions for theme usage
 export const getThemeColor = (path: string) => {
-  return path.split('.').reduce((obj, key) => obj?.[key], theme.colors)
+  return path.split('.').reduce((obj: any, key) => obj?.[key], theme.colors)
 }
 
 export const getCategoryTheme = (category: string) => {

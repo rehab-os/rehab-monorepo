@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAppSelector } from '../../../store/hooks';
 import ApiManager from '../../../services/api';
 import AppointmentCard from '../../../components/molecule/AppointmentCard';
+import AppointmentCalendar from '../../../components/molecule/AppointmentCalendar';
+import RescheduleVisitModal from '../../../components/molecule/RescheduleVisitModal';
+import CancelVisitModal from '../../../components/molecule/CancelVisitModal';
 import { 
   Calendar,
   Clock,
@@ -76,9 +79,14 @@ export default function AppointmentsPage() {
   const [customDate, setCustomDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'grid' | 'calendar'>('table');
   const [page, setPage] = useState(1);
   const limit = 20;
+
+  // Modal states
+  const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const isAdmin = userData?.organization?.is_owner || currentClinic?.is_admin;
 
@@ -154,6 +162,20 @@ export default function AppointmentsPage() {
     if (patient?.id) {
       router.push(`/dashboard/patients/${patient.id}`);
     }
+  };
+
+  const handleReschedule = (visit: Visit) => {
+    setSelectedVisit(visit);
+    setShowRescheduleModal(true);
+  };
+
+  const handleCancel = (visit: Visit) => {
+    setSelectedVisit(visit);
+    setShowCancelModal(true);
+  };
+
+  const handleModalSuccess = () => {
+    fetchVisits(); // Refresh the appointments list
   };
 
   const getStatusColor = (status: string) => {
@@ -337,6 +359,7 @@ export default function AppointmentsPage() {
                   ? 'bg-blue-100 text-blue-600' 
                   : 'text-gray-400 hover:text-gray-600'
               }`}
+              title="Table View"
             >
               <List className="h-4 w-4" />
             </button>
@@ -347,8 +370,20 @@ export default function AppointmentsPage() {
                   ? 'bg-blue-100 text-blue-600' 
                   : 'text-gray-400 hover:text-gray-600'
               }`}
+              title="Grid View"
             >
               <Grid className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`p-2 rounded-md transition-colors ${
+                viewMode === 'calendar' 
+                  ? 'bg-blue-100 text-blue-600' 
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+              title="Calendar View"
+            >
+              <Calendar className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -447,12 +482,24 @@ export default function AppointmentsPage() {
                 console.log('Add note:', visitId);
               }}
               onReschedule={(visitId) => {
-                // Handle reschedule
-                console.log('Reschedule:', visitId);
+                const visit = visitsData.visits.find(v => v.id === visitId);
+                if (visit) handleReschedule(visit);
+              }}
+              onCancel={(visitId) => {
+                const visit = visitsData.visits.find(v => v.id === visitId);
+                if (visit) handleCancel(visit);
               }}
             />
           ))}
         </div>
+      ) : viewMode === 'calendar' ? (
+        <AppointmentCalendar
+          visits={visitsData.visits}
+          onSelectEvent={(visit) => console.log('Selected visit:', visit)}
+          onReschedule={handleReschedule}
+          onCancel={handleCancel}
+          onViewPatient={handleViewPatient}
+        />
       ) : viewMode === 'table' ? (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -552,10 +599,18 @@ export default function AppointmentsPage() {
                               <Activity className="h-4 w-4" />
                             </button>
                             <button
+                              onClick={() => handleReschedule(visit)}
                               className="text-orange-600 hover:text-orange-900 p-1.5 hover:bg-orange-50 rounded-lg transition-colors"
                               title="Reschedule"
                             >
                               <Calendar className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleCancel(visit)}
+                              className="text-red-600 hover:text-red-900 p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Cancel"
+                            >
+                              <XCircle className="h-4 w-4" />
                             </button>
                           </>
                         )}
@@ -643,6 +698,28 @@ export default function AppointmentsPage() {
         </div>
       )}
 
+      {/* Modals */}
+      {showRescheduleModal && selectedVisit && (
+        <RescheduleVisitModal
+          visit={selectedVisit}
+          onClose={() => {
+            setShowRescheduleModal(false);
+            setSelectedVisit(null);
+          }}
+          onSuccess={handleModalSuccess}
+        />
+      )}
+
+      {showCancelModal && selectedVisit && (
+        <CancelVisitModal
+          visit={selectedVisit}
+          onClose={() => {
+            setShowCancelModal(false);
+            setSelectedVisit(null);
+          }}
+          onSuccess={handleModalSuccess}
+        />
+      )}
     </div>
   );
 }

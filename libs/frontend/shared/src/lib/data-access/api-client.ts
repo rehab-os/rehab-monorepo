@@ -3,17 +3,75 @@ import { getCookieValue } from '../utils/helpers'
 // import { authSlice } from '@/lib/redux/slices'
 import { notifications } from '@mantine/notifications'
 
-const getHeaders = () => {
+const getHeaders = (additionalHeaders?: Record<string, string>) => {
     const access_token = getCookieValue('access_token')
+    
+    // Try to get context from Redux store if available
+    let contextHeaders: Record<string, string> = {}
+    
+    if (typeof window !== 'undefined') {
+        try {
+            // Get Redux store instance from window if available (web app)
+            const store = (window as any).__REDUX_STORE__
+            if (store) {
+                const state = store.getState()
+                const userData = state.user?.userData
+                const currentClinic = state.user?.currentClinic
+                
+                if (userData?.organization?.id) {
+                    contextHeaders['x-organization-id'] = userData.organization.id
+                }
+                
+                if (currentClinic?.id) {
+                    contextHeaders['x-clinic-id'] = currentClinic.id
+                }
+            }
+        } catch (error) {
+            // Silently fail if store is not available
+        }
+    }
+    
     return {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${access_token}`,
+        ...contextHeaders,
+        ...additionalHeaders, // Allow override of context headers if needed
     }
 }
 
-const getFileHeaders = () => {
+const getFileHeaders = (additionalHeaders?: Record<string, string>) => {
     const access_token = getCookieValue('access_token')
-    return { Authorization: `Bearer ${access_token}` }
+    
+    // Try to get context from Redux store if available
+    let contextHeaders: Record<string, string> = {}
+    
+    if (typeof window !== 'undefined') {
+        try {
+            // Get Redux store instance from window if available (web app)
+            const store = (window as any).__REDUX_STORE__
+            if (store) {
+                const state = store.getState()
+                const userData = state.user?.userData
+                const currentClinic = state.user?.currentClinic
+                
+                if (userData?.organization?.id) {
+                    contextHeaders['x-organization-id'] = userData.organization.id
+                }
+                
+                if (currentClinic?.id) {
+                    contextHeaders['x-clinic-id'] = currentClinic.id
+                }
+            }
+        } catch (error) {
+            // Silently fail if store is not available
+        }
+    }
+    
+    return { 
+        Authorization: `Bearer ${access_token}`,
+        ...contextHeaders,
+        ...additionalHeaders,
+    }
 }
 
 interface ApiResponse {
@@ -47,7 +105,7 @@ const responseMiddleware = async (response: Response): Promise<ApiResponse> => {
 
 export class ApiMethods {
     static async apiRequest(method: string, url: string, body?: any, additionalHeaders?: Record<string, string>) {
-        const headers = { ...getHeaders(), ...additionalHeaders }
+        const headers = getHeaders(additionalHeaders)
         const config: RequestInit = {
             method,
             headers,
@@ -66,7 +124,7 @@ export class ApiMethods {
         }
     }
 
-    static async apiFileRequest(method: string, url: string, file: File, fieldName: string = 'file') {
+    static async apiFileRequest(method: string, url: string, file: File, fieldName: string = 'file', additionalHeaders?: Record<string, string>) {
         const formData = new FormData()
         formData.append(fieldName, file)
 
@@ -74,7 +132,7 @@ export class ApiMethods {
             const response = await fetch(url, {
                 method,
                 body: formData,
-                headers: getFileHeaders(),
+                headers: getFileHeaders(additionalHeaders),
             })
             return await responseMiddleware(response)
         } catch (error) {
@@ -91,12 +149,12 @@ export class ApiMethods {
         return this.apiRequest('POST', url, data, headers)
     }
 
-    static filePost(url: string, file: File, fieldName?: string) {
-        return this.apiFileRequest('POST', url, file, fieldName)
+    static filePost(url: string, file: File, fieldName?: string, headers?: Record<string, string>) {
+        return this.apiFileRequest('POST', url, file, fieldName, headers)
     }
 
-    static audioPost(url: string, file: File) {
-        return this.apiFileRequest('POST', url, file, 'audio')
+    static audioPost(url: string, file: File, headers?: Record<string, string>) {
+        return this.apiFileRequest('POST', url, file, 'audio', headers)
     }
 
     static put(url: string, data: any, headers?: Record<string, string>) {

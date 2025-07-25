@@ -1,0 +1,49 @@
+{
+  "name": "PhysioHub - Interactive Anatomy Learning",
+  "short_name": "PhysioHub",
+  "description": "Your interactive anatomy learning platform. Explore muscles, joints, ligaments, and more with detailed anatomical information and clinical insights.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f9ff",
+  "theme_color": "#0c4a6e",
+  "orientation": "portrait-primary",
+  "categories": ["education", "medical", "health"],
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Explore Muscles",
+      "short_name": "Muscles",
+      "description": "Browse muscle anatomy and information",
+      "url": "/explore/muscles",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Explore Joints",
+      "short_name": "Joints",
+      "description": "Browse joint structures and biomechanics",
+      "url": "/explore/joints",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Neural Structures",
+      "short_name": "Neural",
+      "description": "Browse nerve pathways and innervation",
+      "url": "/explore/neural",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}

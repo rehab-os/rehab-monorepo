@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Clock, User, Stethoscope, FileText, Activity, 
-  Calendar, ChevronRight, Phone, Mail 
+  Calendar, ChevronRight, Phone, Mail, XCircle 
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -43,6 +43,7 @@ interface AppointmentCardProps {
   onStartVisit?: (visitId: string) => void;
   onAddNote?: (visitId: string) => void;
   onReschedule?: (visitId: string) => void;
+  onCancel?: (visitId: string) => void;
 }
 
 const AppointmentCard: React.FC<AppointmentCardProps> = ({
@@ -51,7 +52,8 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onViewPatient,
   onStartVisit,
   onAddNote,
-  onReschedule
+  onReschedule,
+  onCancel
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -204,6 +206,16 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
               title="Reschedule"
             >
               <Calendar className="h-4 w-4" />
+            </button>
+          )}
+
+          {visit.status === 'SCHEDULED' && onCancel && (
+            <button
+              onClick={() => onCancel(visit.id)}
+              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+              title="Cancel"
+            >
+              <XCircle className="h-4 w-4" />
             </button>
           )}
           
