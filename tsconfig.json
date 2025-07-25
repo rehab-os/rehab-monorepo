@@ -35,6 +35,12 @@
     },
     {
       "path": "./apps/mobile/clinic"
+    },
+    {
+      "path": "./apps/web/physiohub-e2e"
+    },
+    {
+      "path": "./apps/web/physiohub"
     }
   ]
 }
