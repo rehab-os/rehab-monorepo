@@ -1,6 +1,7 @@
 export interface LoginDto {
     phone: string
-    otp: string
+    firebaseIdToken: string
+    otp?: string // Deprecated: Use firebaseIdToken instead
 }
 
 export interface SendOtpDto {

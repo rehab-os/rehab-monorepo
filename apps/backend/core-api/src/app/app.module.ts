@@ -4,7 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 
 // Configuration imports
-import { databaseConfig, supabaseConfig } from '@rehab/database';
+import { databaseConfig } from '@rehab/database';
+import firebaseConfig from '@rehab/database/src/lib/config/firebase.config';
 
 // Common library imports (interfaces, guards, interceptors)
 import {
@@ -12,7 +13,8 @@ import {
   PermissionsGuard,
   ResponseInterceptor,
   AllExceptionsFilter,
-  PERMISSIONS_SERVICE_TOKEN
+  PERMISSIONS_SERVICE_TOKEN,
+  FirebaseService
 } from '@rehab/common';
 
 // All your controllers
@@ -80,7 +82,7 @@ import { JwtModule } from '@nestjs/jwt';
     // 1. Global configuration module
     ConfigModule.forRoot({
       isGlobal: true, // Makes config available everywhere
-      load: [databaseConfig, supabaseConfig],
+      load: [databaseConfig, firebaseConfig],
     }),
 
     // 2. Database connection with TypeORM
@@ -181,6 +183,7 @@ import { JwtModule } from '@nestjs/jwt';
   providers: [
     // ========== SERVICES ==========
     // All your business logic services
+    FirebaseService,
     AuthService,
     PermissionsService,
     RolesService,

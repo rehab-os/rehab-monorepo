@@ -38,6 +38,8 @@ import { ApiManager } from '../../services/api';
 import { validatePhoneNumber } from '../../utils/validators';
 import HapticFeedback from '../../utils/haptics';
 import { showMessage } from 'react-native-flash-message';
+import firebaseAuthService from '../../services/firebase-auth';
+import firebase from 'firebase/compat/app';
 
 const { width, height } = Dimensions.get('window');
 
@@ -49,6 +51,7 @@ export const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [countryCode] = useState('+91');
+  const [confirmationResult, setConfirmationResult] = useState<firebase.auth.ConfirmationResult | null>(null);
   
   const buttonScale = useSharedValue(1);
   const logoRotation = useSharedValue(0);
@@ -97,33 +100,28 @@ export const LoginScreen = () => {
     dispatch(setLoading(true));
     
     try {
-      const response = await ApiManager.sendOtp({ 
-        phone: `${countryCode}${phone}` 
+      const fullPhoneNumber = `${countryCode}${phone}`;
+      
+      // Send OTP via Firebase
+      const confirmationResult = await firebaseAuthService.sendOTP(fullPhoneNumber);
+      setConfirmationResult(confirmationResult);
+      
+      showMessage({
+        message: 'OTP Sent Successfully',
+        description: 'Please check your phone for the verification code',
+        type: 'success',
+        icon: 'success',
+        duration: 3000,
       });
       
-      if (response.success) {
-        showMessage({
-          message: 'OTP Sent Successfully',
-          description: 'Please check your phone for the verification code',
-          type: 'success',
-          icon: 'success',
-          duration: 3000,
-        });
-        navigation.navigate('OTPVerification', { 
-          phoneNumber: `${countryCode}${phone}` 
-        });
-      } else {
-        showMessage({
-          message: 'Failed to send OTP',
-          description: response.message || 'Please try again',
-          type: 'danger',
-          icon: 'danger',
-        });
-      }
+      navigation.navigate('OTPVerification', { 
+        phoneNumber: fullPhoneNumber,
+        confirmationResult: confirmationResult 
+      });
     } catch (error: any) {
       showMessage({
         message: 'Error',
-        description: error.message || 'Something went wrong',
+        description: error.message || 'Failed to send OTP',
         type: 'danger',
         icon: 'danger',
       });

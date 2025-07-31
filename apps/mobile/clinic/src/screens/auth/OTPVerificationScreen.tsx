@@ -29,6 +29,8 @@ import { showMessage } from 'react-native-flash-message';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setLoading } from '../../store/slices/authSlice';
 import ApiManager from '../../services/api/ApiManager';
+import firebaseAuthService from '../../services/firebase-auth';
+import firebase from 'firebase/compat/app';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import GradientBackground from '../../components/ui/GradientBackground';
@@ -41,7 +43,10 @@ export const OTPVerificationScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const route = useRoute();
-  const { phoneNumber } = route.params as { phoneNumber: string };
+  const { phoneNumber, confirmationResult } = route.params as { 
+    phoneNumber: string; 
+    confirmationResult: firebase.auth.ConfirmationResult 
+  };
 
   const { loading: isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
   const [error, setError] = useState<string | null>(null);
@@ -141,12 +146,16 @@ export const OTPVerificationScreen: React.FC = () => {
       setError(null);
       dispatch(setLoading(true));
       try {
-        const response = await ApiManager.verifyOtp({
+        // Verify OTP with Firebase and get ID token
+        const firebaseIdToken = await firebaseAuthService.verifyOTP(confirmationResult, otpCode);
+        
+        // Send ID token to backend for verification and JWT generation
+        const response = await ApiManager.login({
           phone: phoneNumber,
-          otp: otpCode,
+          firebaseIdToken: firebaseIdToken,
         });
         
-        // ApiManager.verifyOtp already handles the Redux state update via loginSuccess
+        // ApiManager.login already handles the Redux state update via loginSuccess
         // and token storage in AsyncStorage, so we just need to check success
         if (!response.success) {
           const errorMessage = response.message || 'Invalid OTP. Please try again.';
@@ -177,29 +186,24 @@ export const OTPVerificationScreen: React.FC = () => {
     dispatch(setLoading(true));
     setError(null);
     try {
-      const response = await ApiManager.sendOtp({ phone: phoneNumber });
-      if (response.success) {
-        startResendTimer();
-        setOtp(['', '', '', '', '', '']);
-        otpInputRefs.current[0]?.focus();
-        showMessage({
-          message: 'OTP Resent',
-          description: 'A new verification code has been sent to your phone',
-          type: 'success',
-          icon: 'success',
-        });
-      } else {
-        showMessage({
-          message: 'Failed to resend OTP',
-          description: response.message || 'Please try again',
-          type: 'danger',
-          icon: 'danger',
-        });
-      }
+      // Send new OTP via Firebase
+      const newConfirmationResult = await firebaseAuthService.sendOTP(phoneNumber);
+      // Note: We would need to pass this new confirmation result to the screen, 
+      // but React Navigation params are read-only. For now, navigating back to login.
+      
+      showMessage({
+        message: 'Please try again',
+        description: 'Redirecting to login screen for new OTP',
+        type: 'info',
+        icon: 'info',
+      });
+      
+      // Navigate back to login screen
+      navigation.navigate('Login');
     } catch (error: any) {
       showMessage({
-        message: 'Error',
-        description: error.message || 'Failed to resend OTP',
+        message: 'Failed to resend OTP',
+        description: error.message || 'Please try again',
         type: 'danger',
         icon: 'danger',
       });

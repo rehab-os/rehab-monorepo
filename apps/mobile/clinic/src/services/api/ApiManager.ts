@@ -39,7 +39,7 @@ class ApiManager {
     return response;
   };
 
-  static verifyOtp = async (data: { phone: string; otp: string }) => {
+  static login = async (data: LoginDto) => {
     const response = await apiClient.post(ENDPOINTS.LOGIN(), data);
     if (response.success && response.data) {
       await setAuthTokens(response.data.access_token, response.data.refresh_token);
@@ -51,16 +51,10 @@ class ApiManager {
     return response;
   };
 
-  static login = async (data: LoginDto) => {
-    const response = await apiClient.post(ENDPOINTS.LOGIN(), data);
-    if (response.success && response.data) {
-      await setAuthTokens(response.data.access_token, response.data.refresh_token);
-      store.dispatch(loginSuccess(response.data));
-      if (response.data.user) {
-        store.dispatch(setUserData(response.data.user));
-      }
-    }
-    return response;
+  // Deprecated: Use login instead
+  static verifyOtp = async (data: { phone: string; otp: string }) => {
+    // For backward compatibility, redirect to login with firebaseIdToken placeholder
+    throw new Error('verifyOtp is deprecated. Use login with Firebase ID token instead.');
   };
 
   static getMe = async () => {

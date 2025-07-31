@@ -24,8 +24,7 @@ export * from './lib/guards/permissions.guard';
 export * from './lib/interfaces/permissions-service.interface';
 export * from './lib/interceptors/response.interceptor';
 export * from './lib/filters/http-exception.filter';
-
-
+export * from './lib/services/firebase.service';
 
 export * from './lib/interceptors/response.interceptor';
 

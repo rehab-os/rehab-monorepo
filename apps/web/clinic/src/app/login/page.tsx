@@ -10,6 +10,8 @@ import {
   loginFailure,
 } from '../../store/slices/auth.slice';
 import ApiManager from '../../services/api';
+import firebaseAuthService from '../../services/firebase-auth';
+import { ConfirmationResult } from 'firebase/auth';
 import { 
   Phone, 
   ShieldCheck, 
@@ -27,6 +29,7 @@ export default function Login() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Redirect if already authenticated
@@ -35,6 +38,15 @@ export default function Login() {
       router.push('/dashboard');
     }
   }, [isAuthenticated, router]);
+
+  // Initialize Firebase reCAPTCHA
+  useEffect(() => {
+    firebaseAuthService.initializeRecaptcha();
+    
+    return () => {
+      firebaseAuthService.cleanup();
+    };
+  }, []);
 
   const formatPhoneNumber = (value: string) => {
     // Remove all non-digits
@@ -70,14 +82,18 @@ export default function Login() {
     
     try {
       dispatch(loginStart());
-      await ApiManager.sendOtp({ phone });
+      
+      // Send OTP via Firebase
+      const confirmationResult = await firebaseAuthService.sendOTP(phone);
+      setConfirmationResult(confirmationResult);
+      
       dispatch(setOtpSent(true));
       dispatch(loginFailure());
       // Focus first OTP input
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (error: any) {
       dispatch(loginFailure());
-      setError(error.response?.data?.message || 'Failed to send OTP. Please try again.');
+      setError(error.message || 'Failed to send OTP. Please try again.');
     }
   };
 
@@ -133,11 +149,21 @@ export default function Login() {
       return;
     }
     
+    if (!confirmationResult) {
+      setError('Please request OTP first');
+      return;
+    }
+    
     setError('');
     
     try {
       dispatch(setOtpVerifying(true));
-      const response = await ApiManager.login({ phone, otp: otpString });
+      
+      // Verify OTP with Firebase and get ID token
+      const firebaseIdToken = await firebaseAuthService.verifyOTP(confirmationResult, otpString);
+      
+      // Send ID token to backend for verification and JWT generation
+      const response = await ApiManager.login({ phone, firebaseIdToken });
       
       if (response.success) {
         // Login successful, redirect to dashboard
@@ -148,7 +174,7 @@ export default function Login() {
       }
     } catch (error: any) {
       dispatch(loginFailure());
-      setError(error.response?.data?.message || error.message || 'Invalid OTP. Please try again.');
+      setError(error.message || 'Invalid OTP. Please try again.');
       // Clear OTP inputs on error
       setOtp(['', '', '', '', '', '']);
       otpRefs.current[0]?.focus();
@@ -175,6 +201,9 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-healui-physio/5 via-white to-healui-primary/5 relative overflow-hidden">
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
+      
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-healui-physio rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>

@@ -2,10 +2,10 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
 import { User, UserClinicRole, Organization, Clinic } from '@rehab/database';
 import { LoginDto, SendOtpDto, LoginResponseDto } from '@rehab/common';
+import { FirebaseService } from '@rehab/common/services/firebase.service';
 
 // Define a type for the loaded relations
 type UserClinicRoleWithRelations = UserClinicRole & {
@@ -16,8 +16,6 @@ type UserClinicRoleWithRelations = UserClinicRole & {
 
 @Injectable()
 export class AuthService {
-    private supabase: SupabaseClient;
-
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
@@ -27,82 +25,89 @@ export class AuthService {
         private organizationRepository: Repository<Organization>,
         private jwtService: JwtService,
         private configService: ConfigService,
-    ) {
-        const supabaseUrl = this.configService.get<string>('supabase.url');
-        const supabaseKey = this.configService.get<string>('supabase.serviceKey');
-
-        if (!supabaseUrl || !supabaseKey) {
-            throw new Error('Supabase configuration is missing');
-        }
-
-        this.supabase = createClient(supabaseUrl, supabaseKey);
-    }
+        private firebaseService: FirebaseService,
+    ) {}
 
     async sendOtp(sendOtpDto: SendOtpDto): Promise<{ message: string }> {
         const { phone } = sendOtpDto;
 
-        // Send OTP via Supabase
-        const { error } = await this.supabase.auth.signInWithOtp({
-            phone,
-        });
-
-        if (error) {
-            throw new BadRequestException(error.message);
+        // Validate phone number format
+        if (!phone || !phone.startsWith('+')) {
+            throw new BadRequestException('Invalid phone number format. Please include country code.');
         }
 
-        return { message: 'OTP sent successfully' };
+        // Firebase handles OTP sending on the client side via RecaptchaVerifier
+        // This endpoint is kept for compatibility but actual OTP sending is done client-side
+        return { message: 'Please initiate OTP verification from the client app' };
     }
 
     async login(loginDto: LoginDto): Promise<LoginResponseDto> {
-        const { phone, otp } = loginDto;
+        const { phone, firebaseIdToken } = loginDto;
 
-        // Verify OTP with Supabase
-        const { data: authData, error } = await this.supabase.auth.verifyOtp({
-            phone,
-            token: otp,
-            type: 'sms',
-        });
-
-        if (error || !authData.user) {
-            throw new UnauthorizedException('Invalid OTP');
+        if (!firebaseIdToken) {
+            throw new BadRequestException('Firebase ID token is required');
         }
 
-        // Get or create user
-        let user = await this.userRepository.findOne({
-            where: { phone }
-        });
+        try {
+            // Verify Firebase ID token
+            const decodedToken = await this.firebaseService.verifyIdToken(firebaseIdToken);
+            
+            // Verify that the phone number matches
+            if (decodedToken.phone_number !== phone) {
+                throw new UnauthorizedException('Phone number mismatch');
+            }
 
-        if (!user) {
-
-
-            // Create new user
-            user = this.userRepository.create({
-                id: authData.user.id,
-                phone,
-                full_name: 'New User', // Will be updated in profile completion
+            // Get or create user
+            let user = await this.userRepository.findOne({
+                where: { phone }
             });
-            await this.userRepository.save(user);
+
+            if (!user) {
+                // Create new user
+                user = this.userRepository.create({
+                    id: decodedToken.uid,
+                    phone,
+                    full_name: decodedToken.name || 'New User', // Will be updated in profile completion
+                });
+                await this.userRepository.save(user);
+            } else {
+                // Update user ID with Firebase UID if different
+                if (user.id !== decodedToken.uid) {
+                    user.id = decodedToken.uid;
+                    await this.userRepository.save(user);
+                }
+            }
+
+            // Get user organization and clinic data
+            const userData = await this.getUserWithOrganizationData(user.id);
+
+            const payload = {
+                id: user.id,
+                phone: user.phone,
+                sub: user.id,
+                firebase_uid: decodedToken.uid,
+            };
+
+            const access_token = await this.jwtService.signAsync(payload);
+            const refresh_token = await this.jwtService.signAsync(payload, {
+                expiresIn: '7d',
+            });
+
+            return {
+                access_token,
+                refresh_token,
+                user: userData,
+            };
+        } catch (error) {
+            if (error.code === 'auth/id-token-expired') {
+                throw new UnauthorizedException('Firebase token has expired');
+            } else if (error.code === 'auth/id-token-revoked') {
+                throw new UnauthorizedException('Firebase token has been revoked');
+            } else if (error.code === 'auth/invalid-id-token') {
+                throw new UnauthorizedException('Invalid Firebase token');
+            }
+            throw new UnauthorizedException('Authentication failed');
         }
-
-        // Get user organization and clinic data
-        const userData = await this.getUserWithOrganizationData(user.id);
-
-        const payload = {
-            id: user.id,
-            phone: user.phone,
-            sub: user.id,
-        };
-
-        const access_token = await this.jwtService.signAsync(payload);
-        const refresh_token = await this.jwtService.signAsync(payload, {
-            expiresIn: '7d',
-        });
-
-        return {
-            access_token,
-            refresh_token,
-            user: userData,
-        };
     }
 
     async getUserWithOrganizationData(userId: string): Promise<any> {

@@ -29,6 +29,7 @@
     "nativewind": "*",
     "tailwindcss": "*",
     "expo-av": "*",
-    "expo-file-system": "*"
+    "expo-file-system": "*",
+    "firebase": "*"
   }
 }

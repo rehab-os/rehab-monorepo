@@ -8,10 +8,15 @@ export class LoginDto {
     @Matches(/^\+?[1-9]\d{1,14}$/, { message: 'Invalid phone number format' })
     phone!: string;
 
-    @ApiProperty({ example: '123456' })
+    @ApiProperty({ example: 'firebase-id-token-here', description: 'Firebase ID token obtained after OTP verification' })
     @IsString()
     @IsNotEmpty()
-    otp!: string;
+    firebaseIdToken!: string;
+
+    // Keep OTP field for backward compatibility
+    @ApiProperty({ example: '123456', required: false, description: 'Deprecated: Use firebaseIdToken instead' })
+    @IsString()
+    otp?: string;
 }
 
 export class SendOtpDto {
