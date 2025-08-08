@@ -10,25 +10,19 @@ import {
     UpdateProfileDto,
     UserListQueryDto
 } from '@rehab/common';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
+import { FirebaseService } from '@rehab/common';
 
 @Injectable()
 export class UsersService {
-    private supabase: SupabaseClient;
-
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
         @InjectRepository(UserClinicRole)
         private userClinicRoleRepository: Repository<UserClinicRole>,
         private configService: ConfigService,
-    ) {
-        this.supabase = createClient(
-            this.configService.get('supabase.url')!,
-            this.configService.get('supabase.serviceKey')!
-        );
-    }
+        private firebaseService: FirebaseService,
+    ) {}
 
     async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
         // Check if user exists
@@ -40,22 +34,23 @@ export class UsersService {
             throw new ConflictException('User with this phone number already exists');
         }
 
-        // Create auth user in Supabase
-        const { data: authData, error } = await this.supabase.auth.admin.createUser({
-            phone: createUserDto.phone,
-            phone_confirm: true, // Auto-confirm for admin-created users
-            user_metadata: {
-                full_name: createUserDto.full_name,
-            }
-        });
-
-        if (error) {
-            throw new Error(`Failed to create auth user: ${error.message}`);
+        // Check if user exists in Firebase
+        let firebaseUser;
+        let userId: string;
+        
+        try {
+            // Try to get existing Firebase user by phone
+            firebaseUser = await this.firebaseService.getUserByPhoneNumber(createUserDto.phone);
+            userId = firebaseUser.uid;
+        } catch (error: any) {
+            // User doesn't exist in Firebase, create a temporary ID
+            // The actual Firebase user will be created when they first authenticate
+            userId = `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         }
 
         // Create user in our database
         const user = this.userRepository.create({
-            id: authData.user!.id,
+            id: userId,
             ...createUserDto,
         });
 
@@ -103,13 +98,16 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        // Update Supabase auth user if phone is changing
+        // Update Firebase auth user if phone is changing
         if (updateUserDto.phone && updateUserDto.phone !== user.phone) {
-            const { error } = await this.supabase.auth.admin.updateUserById(id, {
-                phone: updateUserDto.phone,
-            });
-
-            if (error) {
+            try {
+                // Check if user exists in Firebase
+                if (!user.id.startsWith('pending_')) {
+                    await this.firebaseService.updateUser(id, {
+                        phoneNumber: updateUserDto.phone,
+                    });
+                }
+            } catch (error: any) {
                 throw new Error(`Failed to update auth user: ${error.message}`);
             }
         }
@@ -143,10 +141,17 @@ export class UsersService {
             throw new NotFoundException('User not found');
         }
 
-        // Deactivate in Supabase
-        await this.supabase.auth.admin.updateUserById(id, {
-            ban_duration: 'none', // This effectively disables the user
-        });
+        // Deactivate in Firebase
+        try {
+            if (!user.id.startsWith('pending_')) {
+                await this.firebaseService.updateUser(id, {
+                    disabled: true,
+                });
+            }
+        } catch (error: any) {
+            // Log error but continue with soft delete
+            console.error(`Failed to disable Firebase user: ${error.message}`);
+        }
 
         // Soft delete - just mark as inactive
         user.user_status = UserStatus.SUSPENDED;

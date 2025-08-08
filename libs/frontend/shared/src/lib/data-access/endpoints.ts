@@ -52,7 +52,21 @@ export const ENDPOINTS = {
     UPDATE_TEAM_MEMBER_ROLE: (userId: string) => `team/members/${userId}/role`,
 
     // Patients
-    GET_PATIENTS: () => 'patients',
+    GET_PATIENTS: (params?: Record<string, any>) => {
+        let url = 'patients'
+        if (params) {
+            const searchParams = new URLSearchParams()
+            Object.keys(params).forEach(key => {
+                if (params[key] !== undefined && params[key] !== null) {
+                    searchParams.append(key, params[key].toString())
+                }
+            })
+            if (searchParams.toString()) {
+                url += '?' + searchParams.toString()
+            }
+        }
+        return url
+    },
     GET_PATIENT: (id: string) => `patients/${id}`,
     CREATE_PATIENT: () => 'patients',
     UPDATE_PATIENT: (id: string) => `patients/${id}`,

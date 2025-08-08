@@ -44,6 +44,16 @@ class ApiManager {
         })
     }
 
+    static enterpriseLogin = (firebaseIdToken: string) => {
+        const url = BASE_URL + 'auth/enterprise-login'
+        return ApiMethods.post(url, { firebaseIdToken }).then((res) => {
+            if (res.success && res.data) {
+                store.dispatch(authSlice.actions.loginSuccess(res.data))
+            }
+            return res
+        })
+    }
+
     static getMe = () => {
         const url = BASE_URL + ENDPOINTS.GET_ME()
         return ApiMethods.get(url).then((res) => {

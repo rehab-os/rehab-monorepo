@@ -40,12 +40,14 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ onClose, onSuccess })
 
     try {
       setLoading(true);
+      console.log('Current clinic:', currentClinic); // Debug log
       const patientData: CreatePatientDto = {
         ...formData,
         clinic_id: currentClinic.id,
         allergies: formData.allergies ? formData.allergies.split(',').map(a => a.trim()).filter(Boolean) : undefined,
         current_medications: formData.current_medications ? formData.current_medications.split(',').map(m => m.trim()).filter(Boolean) : undefined,
       };
+      console.log('Patient data being sent:', patientData); // Debug log
 
       const response = await ApiManager.createPatient(patientData);
       

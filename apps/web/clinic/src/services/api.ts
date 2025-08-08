@@ -140,8 +140,8 @@ class ApiManager {
 
     // Patients
     static getPatients = (params?: any) => {
-        const url = BASE_URL + ENDPOINTS.GET_PATIENTS()
-        return ApiMethods.get(url, undefined, params)
+        const url = BASE_URL + ENDPOINTS.GET_PATIENTS(params)
+        return ApiMethods.get(url)
     }
 
     static getPatient = (id: string) => {

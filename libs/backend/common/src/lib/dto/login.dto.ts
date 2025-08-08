@@ -12,11 +12,6 @@ export class LoginDto {
     @IsString()
     @IsNotEmpty()
     firebaseIdToken!: string;
-
-    // Keep OTP field for backward compatibility
-    @ApiProperty({ example: '123456', required: false, description: 'Deprecated: Use firebaseIdToken instead' })
-    @IsString()
-    otp?: string;
 }
 
 export class SendOtpDto {

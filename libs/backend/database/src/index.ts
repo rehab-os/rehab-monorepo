@@ -30,6 +30,5 @@ export * from './lib/entities/note.entity'
 
 
 export { default as databaseConfig } from './lib/config/database.config'
-
-export { default as supabaseConfig } from './lib/config/supabase.config'
+export { default as firebaseConfig } from './lib/config/firebase.config'
 

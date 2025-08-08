@@ -26,7 +26,8 @@ import {
   Activity,
   AlertCircle,
   Heart,
-  FileCheck
+  FileCheck,
+  Shield
 } from 'lucide-react';
 
 interface Patient {
@@ -49,7 +50,7 @@ interface PatientsData {
 }
 
 export default function PatientsPage() {
-  const { currentClinic } = useAppSelector(state => state.user);
+  const { userData, currentClinic } = useAppSelector(state => state.user);
   const [patientsData, setPatientsData] = useState<PatientsData>({
     patients: [],
     total: 0,
@@ -137,6 +138,23 @@ export default function PatientsPage() {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Access control - only allow receptionist/manager roles or clinic admins
+  if (currentClinic && !currentClinic.is_admin && 
+      currentClinic.role !== 'receptionist' && 
+      currentClinic.role !== 'manager') {
+    return (
+      <div className="max-w-2xl mx-auto py-12">
+        <div className="card-base text-center">
+          <Shield className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-display font-semibold text-text-dark mb-2">Access Denied</h2>
+          <p className="text-text-gray text-center">
+            Only receptionists, managers, and clinic administrators can manage patients.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentClinic) {
     return (

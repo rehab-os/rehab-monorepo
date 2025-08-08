@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { User, UserClinicRole, Organization, Clinic } from '@rehab/database';
 import { LoginDto, SendOtpDto, LoginResponseDto } from '@rehab/common';
-import { FirebaseService } from '@rehab/common/services/firebase.service';
+import { FirebaseService } from '@rehab/common';
 
 // Define a type for the loaded relations
 type UserClinicRoleWithRelations = UserClinicRole & {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -22,6 +22,8 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconPhone, IconShieldCheck } from '@tabler/icons-react';
 import ApiManager from '../../../services/data';
+import firebaseAuthService from '../../../services/firebase-auth';
+import { ConfirmationResult } from 'firebase/auth';
 import { motion } from 'framer-motion';
 
 export default function LoginPage() {
@@ -29,42 +31,73 @@ export default function LoginPage() {
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [loading, setLoading] = useState(false);
   const [phone, setPhone] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  // Initialize Firebase reCAPTCHA
+  useEffect(() => {
+    firebaseAuthService.initializeRecaptcha();
+    
+    return () => {
+      firebaseAuthService.cleanup();
+    };
+  }, []);
+
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Add +91 if not present and format
+    if (digits.startsWith('91') && digits.length > 2) {
+      return '+' + digits;
+    } else if (!digits.startsWith('91') && digits.length > 0) {
+      return '+91' + digits;
+    }
+    return digits ? '+91' + digits : '';
+  };
+
+  const validatePhone = (phone: string) => {
+    const phoneRegex = /^(?:\+91|91)?[6-9]\d{9}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  };
 
   const phoneForm = useForm({
     initialValues: {
       phone: '',
     },
     validate: {
-      phone: (value) => {
-        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-        return phoneRegex.test(value) ? null : 'Invalid phone number';
-      },
+      phone: (value) => validatePhone(value) ? null : 'Please enter a valid 10-digit Indian mobile number',
     },
   });
 
   const handleSendOtp = async (values: { phone: string }) => {
     setLoading(true);
     try {
-      const response = await ApiManager.sendOtp({ phone: values.phone });
-      if (response.success) {
-        setPhone(values.phone);
-        setStep('otp');
-        notifications.show({
-          title: 'OTP Sent',
-          message: 'Please check your phone for the OTP',
-          color: 'green',
-        });
-      } else {
+      const formattedPhone = formatPhoneNumber(values.phone);
+      
+      if (!validatePhone(formattedPhone)) {
         notifications.show({
           title: 'Error',
-          message: response.message || 'Failed to send OTP',
+          message: 'Please enter a valid 10-digit Indian mobile number',
           color: 'red',
         });
+        return;
       }
-    } catch (error) {
+
+      // Send OTP via Firebase
+      const confirmationResult = await firebaseAuthService.sendOTP(formattedPhone);
+      setConfirmationResult(confirmationResult);
+      setPhone(formattedPhone);
+      setStep('otp');
+      
+      notifications.show({
+        title: 'OTP Sent',
+        message: 'Please check your phone for the OTP',
+        color: 'green',
+      });
+    } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: 'Failed to send OTP',
+        message: error.message || 'Failed to send OTP',
         color: 'red',
       });
     } finally {
@@ -73,27 +106,46 @@ export default function LoginPage() {
   };
 
   const handleLogin = async (otp: string) => {
+    if (otp.length !== 6) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please enter a complete 6-digit OTP',
+        color: 'red',
+      });
+      return;
+    }
+    
+    if (!confirmationResult) {
+      notifications.show({
+        title: 'Error',
+        message: 'Please request OTP first',
+        color: 'red',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await ApiManager.login({ phone, otp });
+      // Verify OTP with Firebase and get ID token
+      const firebaseIdToken = await firebaseAuthService.verifyOTP(confirmationResult, otp);
+      
+      // Use enterprise login API instead of regular login
+      const response = await ApiManager.enterpriseLogin(firebaseIdToken);
+      
       if (response.success) {
         notifications.show({
           title: 'Login Successful',
-          message: 'Welcome to RehabOS!',
+          message: 'Welcome to RehabOS Enterprise Console!',
           color: 'green',
         });
         router.push('/dashboard');
       } else {
-        notifications.show({
-          title: 'Error',
-          message: response.message || 'Invalid OTP',
-          color: 'red',
-        });
+        throw new Error(response.message || 'Login failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       notifications.show({
         title: 'Error',
-        message: 'Login failed',
+        message: error.message || 'Invalid OTP. Please try again.',
         color: 'red',
       });
     } finally {
@@ -103,6 +155,9 @@ export default function LoginPage() {
 
   return (
     <Box className="h-screen relative overflow-hidden">
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
+      
       <BackgroundImage
         src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2070"
         className="h-full"
@@ -149,6 +204,9 @@ export default function LoginPage() {
                             leftSection={<IconPhone size={16} />}
                             size="lg"
                             {...phoneForm.getInputProps('phone')}
+                            onChange={(e) => phoneForm.setFieldValue('phone', formatPhoneNumber(e.target.value))}
+                            disabled={loading}
+                            maxLength={13}
                             classNames={{
                               input:
                                 'bg-white/10 border-white/20 text-white placeholder-gray-400',

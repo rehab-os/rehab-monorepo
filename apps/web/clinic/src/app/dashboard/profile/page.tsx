@@ -56,21 +56,49 @@ const TECHNIQUE_CATEGORIES = [
 
 const PROFICIENCY_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
 
+// Map machine types from JSON to enum values
+const mapMachineTypeToEnum = (type: string): string => {
+  const typeMap: { [key: string]: string } = {
+    'Electrotherapy Machine': 'electrotherapy',
+    'Manual Therapy Equipment': 'exercise_equipment',
+    'Exercise Equipment': 'exercise_equipment',
+    'Specialized Rehabilitation Equipment': 'exercise_equipment',
+    'Heat and Cold Therapy': 'paraffin_bath',
+    'Assessment Tools': 'biofeedback',
+    'Hydrotherapy Equipment': 'exercise_equipment'
+  };
+  return typeMap[type] || 'exercise_equipment';
+};
+
 // Get machine names from database
 const AVAILABLE_MACHINES = machinesData.machines.map(machine => ({
   name: machine.name,
   type: machine.type,
+  enumType: mapMachineTypeToEnum(machine.type),
   usedIn: machine.usedIn
 }));
 
 const MACHINE_CATEGORIES = [
-  'Electrotherapy Machine',
-  'Manual Therapy Equipment', 
-  'Exercise Equipment',
-  'Specialized Rehabilitation Equipment',
-  'Heat and Cold Therapy',
-  'Assessment Tools',
-  'Hydrotherapy Equipment'
+  { value: 'electrotherapy', label: 'Electrotherapy Machine' },
+  { value: 'ultrasound', label: 'Ultrasound' },
+  { value: 'laser_therapy', label: 'Laser Therapy' },
+  { value: 'tens_unit', label: 'TENS Unit' },
+  { value: 'ems_unit', label: 'EMS Unit' },
+  { value: 'interferential', label: 'Interferential' },
+  { value: 'shortwave_diathermy', label: 'Shortwave Diathermy' },
+  { value: 'microwave_diathermy', label: 'Microwave Diathermy' },
+  { value: 'paraffin_bath', label: 'Paraffin Bath' },
+  { value: 'ice_machine', label: 'Ice Machine' },
+  { value: 'exercise_equipment', label: 'Exercise Equipment' },
+  { value: 'treadmill', label: 'Treadmill' },
+  { value: 'exercise_bike', label: 'Exercise Bike' },
+  { value: 'weight_training', label: 'Weight Training' },
+  { value: 'balance_trainer', label: 'Balance Trainer' },
+  { value: 'traction_unit', label: 'Traction Unit' },
+  { value: 'cpm_machine', label: 'CPM Machine' },
+  { value: 'biofeedback', label: 'Biofeedback' },
+  { value: 'gait_trainer', label: 'Gait Trainer' },
+  { value: 'parallel_bars', label: 'Parallel Bars' }
 ];
 
 const COMPETENCY_LEVELS = ['basic', 'intermediate', 'advanced', 'certified'];
@@ -233,9 +261,13 @@ export default function ProfilePage() {
       
       if (response.success && response.data) {
         setProfile({
-          ...response.data,
+          license_number: response.data.license_number || '',
+          experience_level: response.data.experience_level || 'fresher',
+          years_of_experience: response.data.years_of_experience || 0,
+          specializations: response.data.specializations || [],
+          bio: response.data.bio || '',
           languages: response.data.languages || [],
-          specializations: response.data.specializations || []
+          is_profile_complete: response.data.is_profile_complete || false
         });
         setEducations(response.data.educations || []);
         setTechniques(response.data.techniques || []);
@@ -253,7 +285,15 @@ export default function ProfilePage() {
     try {
       setLoading(true);
       // Always use POST endpoint which handles both create and update
-      const response = await ApiManager.createPhysiotherapistProfile(profile);
+      const profileData = {
+        license_number: profile.license_number,
+        experience_level: profile.experience_level,
+        years_of_experience: profile.years_of_experience,
+        specializations: profile.specializations,
+        bio: profile.bio,
+        languages: profile.languages
+      };
+      const response = await ApiManager.createPhysiotherapistProfile(profileData);
 
       if (response.success) {
         setIsEditing(false);
@@ -902,9 +942,9 @@ export default function ProfilePage() {
                               <SelectValue placeholder="All Categories" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">All Categories</SelectItem>
+                              <SelectItem value="all">All Categories</SelectItem>
                               {MACHINE_CATEGORIES.map(cat => (
-                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -919,7 +959,7 @@ export default function ProfilePage() {
                           const matchesSearch = machineSearchQuery === '' || 
                             machine.name.toLowerCase().includes(machineSearchQuery.toLowerCase()) ||
                             machine.usedIn.some(use => use.toLowerCase().includes(machineSearchQuery.toLowerCase()));
-                          const matchesCategory = selectedMachineCategory === '' || machine.type === selectedMachineCategory;
+                          const matchesCategory = selectedMachineCategory === '' || selectedMachineCategory === 'all' || machine.enumType === selectedMachineCategory;
                           return matchesSearch && matchesCategory;
                         })
                         .map((machine, index) => (
@@ -931,7 +971,7 @@ export default function ProfilePage() {
                           onClick={() => setNewMachine({
                             ...newMachine,
                             machine_name: machine.name,
-                            category: machine.type
+                            category: machine.enumType
                           })}
                         >
                           <div className="flex items-start justify-between">

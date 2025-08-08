@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { logout } from '../../store/slices/auth.slice';
 import Header from '../../components/molecule/Header';
 import ApiManager from '../../services/api';
+import firebaseAuthService from '../../services/firebase-auth';
 import { 
   LayoutDashboard, 
   Users, 
@@ -14,7 +16,8 @@ import {
   UserPlus,
   User,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -65,7 +68,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       name: 'Patients',
       href: '/dashboard/patients',
       icon: Users,
-      show: currentClinic !== null,
+      show: currentClinic !== null && (
+        currentClinic?.is_admin || 
+        currentClinic?.role === 'receptionist' || 
+        currentClinic?.role === 'manager'
+      ),
     },
     {
       name: 'Appointments',
@@ -100,6 +107,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   ];
 
   const filteredNavItems = navigationItems.filter(item => item.show);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      // Sign out from Firebase
+      await firebaseAuthService.signOut();
+      
+      // Clear Redux state and cookies
+      dispatch(logout());
+      
+      // Redirect to login
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if Firebase logout fails, clear local state
+      dispatch(logout());
+      router.push('/login');
+    }
+  };
 
   if (loading) {
     return (
@@ -192,7 +218,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
             {/* Sidebar Footer */}
             <div className={`py-4 border-t border-border-color transition-all duration-300 ${isCollapsed ? 'px-2' : 'px-4'}`}>
-              <div className={`bg-gray-50 rounded-lg transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-3'}`}>
+              <div className={`bg-gray-50 rounded-lg transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-3'} mb-3`}>
                 <div className="text-xs text-text-light">
                   {currentClinic ? (
                     <div className={`transition-all duration-300 ${isCollapsed ? 'text-center' : ''}`}>
@@ -238,6 +264,36 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </div>
                   )}
                 </div>
+              </div>
+              
+              {/* Logout Button */}
+              <div className="relative group">
+                <button
+                  onClick={handleLogout}
+                  className={`
+                    group flex items-center w-full py-3 text-sm font-medium rounded-lg transition-all duration-200
+                    ${isCollapsed ? 'px-3 justify-center' : 'px-4'} 
+                    text-red-600 hover:text-red-700 hover:bg-red-50
+                  `}
+                >
+                  <LogOut className={`
+                    h-5 w-5 transition-colors flex-shrink-0
+                    ${isCollapsed ? 'mr-0' : 'mr-3'}
+                  `} />
+                  <span className={`transition-all duration-300 overflow-hidden whitespace-nowrap ${
+                    isCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                  }`}>
+                    Sign Out
+                  </span>
+                </button>
+                
+                {/* Tooltip for collapsed state */}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
+                    Sign Out
+                    <div className="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-r-4 border-r-gray-900 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSelector } from '../../store/hooks';
 import ApiManager from '../../services/api';
+import LeafletMapPicker from './LeafletMapPicker';
 import {
   X,
   Building2,
@@ -12,13 +13,10 @@ import {
   User,
   Clock,
   Bed,
-  Plus,
-  Trash2,
   AlertCircle,
   CheckCircle,
   Loader2
 } from 'lucide-react';
-import machinesData from '../../../../../../database/machines/machines.json';
 
 interface CreateClinicModalProps {
   onClose: () => void;
@@ -33,11 +31,9 @@ interface FormData {
   pincode: string;
   phone: string;
   email: string;
-  admin_phone: string;
   total_beds: string;
-  latitude: string;
-  longitude: string;
-  facilities: string[];
+  latitude: number | null;
+  longitude: number | null;
   working_hours: {
     [key: string]: { open: string; close: string; is_open: boolean };
   };
@@ -48,18 +44,7 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // Group machines by type
-  const machinesByType = React.useMemo(() => {
-    const grouped: Record<string, typeof machinesData.machines> = {};
-    machinesData.machines.forEach(machine => {
-      if (!grouped[machine.type]) {
-        grouped[machine.type] = [];
-      }
-      grouped[machine.type].push(machine);
-    });
-    return grouped;
-  }, []);
+  const [selectedAddress, setSelectedAddress] = useState<string>('');
   
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -69,11 +54,9 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
     pincode: '',
     phone: '',
     email: '',
-    admin_phone: '',
     total_beds: '',
-    latitude: '',
-    longitude: '',
-    facilities: [],
+    latitude: null,
+    longitude: null,
     working_hours: {
       monday: { open: '09:00', close: '18:00', is_open: true },
       tuesday: { open: '09:00', close: '18:00', is_open: true },
@@ -86,9 +69,9 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
   });
 
   const steps = [
-    { id: 1, title: 'Basic Info', description: 'Clinic name and location' },
-    { id: 2, title: 'Contact Details', description: 'Phone, email, and admin' },
-    { id: 3, title: 'Additional Info', description: 'Facilities and working hours' }
+    { id: 1, title: 'Basic Info', description: 'Clinic name and contact' },
+    { id: 2, title: 'Location', description: 'Select clinic location on map' },
+    { id: 3, title: 'Working Hours', description: 'Set operating hours' }
   ];
 
   const formatPhoneNumber = (phone: string): string => {
@@ -124,29 +107,21 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
 
     if (step === 1) {
       if (!formData.name.trim()) newErrors.name = 'Clinic name is required';
-      if (!formData.address.trim()) newErrors.address = 'Address is required';
-      if (!formData.city.trim()) newErrors.city = 'City is required';
-      if (!formData.state.trim()) newErrors.state = 'State is required';
-      if (!formData.pincode.trim()) newErrors.pincode = 'Pincode is required';
-      if (formData.pincode && !/^\d{6}$/.test(formData.pincode)) {
-        newErrors.pincode = 'Pincode must be 6 digits';
-      }
-    }
-
-    if (step === 2) {
       if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-      if (!formData.admin_phone.trim()) newErrors.admin_phone = 'Admin phone is required';
       
       // Validate phone format - should be +91XXXXXXXXXX
       const phoneRegex = /^\+91[6-9]\d{9}$/;
       if (formData.phone && !phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
         newErrors.phone = 'Phone must be a valid Indian mobile number (+91XXXXXXXXXX)';
       }
-      if (formData.admin_phone && !phoneRegex.test(formData.admin_phone.replace(/\s/g, ''))) {
-        newErrors.admin_phone = 'Admin phone must be a valid Indian mobile number (+91XXXXXXXXXX)';
-      }
       if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
         newErrors.email = 'Invalid email address';
+      }
+    }
+
+    if (step === 2) {
+      if (!formData.latitude || !formData.longitude) {
+        newErrors.location = 'Please select a location on the map';
       }
     }
 
@@ -167,7 +142,7 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     // Format phone numbers automatically
-    if (field === 'phone' || field === 'admin_phone') {
+    if (field === 'phone') {
       value = formatPhoneNumber(value);
     }
     
@@ -177,6 +152,25 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
     }
   };
 
+
+  const handleLocationSelect = (lat: number, lng: number, address?: string) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng,
+      address: address || prev.address,
+      // Auto-populate address fields if not manually filled
+      city: prev.city || extractCityFromAddress(address || ''),
+      state: prev.state || extractStateFromAddress(address || ''),
+      pincode: prev.pincode || extractPincodeFromAddress(address || '')
+    }));
+    setSelectedAddress(address || '');
+    
+    // Clear location error if exists
+    if (errors.location) {
+      setErrors(prev => ({ ...prev, location: '' }));
+    }
+  };
 
   const updateWorkingHours = (day: string, field: 'open' | 'close' | 'is_open', value: string | boolean) => {
     setFormData(prev => ({
@@ -196,16 +190,18 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
 
     setLoading(true);
     try {
-      // Ensure phone numbers are properly formatted
+      // Ensure phone number is properly formatted
       const submitData = {
         ...formData,
         phone: formatPhoneNumber(formData.phone),
-        admin_phone: formatPhoneNumber(formData.admin_phone),
         total_beds: formData.total_beds ? parseInt(formData.total_beds) : undefined,
-        latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         working_hours: formData.working_hours,
-        facilities: formData.facilities.length > 0 ? formData.facilities : undefined
+        // Extract city, state, pincode from address if not provided
+        city: formData.city || extractCityFromAddress(selectedAddress),
+        state: formData.state || extractStateFromAddress(selectedAddress),
+        pincode: formData.pincode || extractPincodeFromAddress(selectedAddress)
       };
 
       console.log('Submitting clinic data:', submitData);
@@ -223,6 +219,23 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper functions to extract address components
+  const extractCityFromAddress = (address: string): string => {
+    // Simple extraction - in a real app, you'd use Google Places API details
+    const parts = address.split(',');
+    return parts.length > 2 ? parts[parts.length - 3].trim() : '';
+  };
+
+  const extractStateFromAddress = (address: string): string => {
+    const parts = address.split(',');
+    return parts.length > 1 ? parts[parts.length - 2].trim().split(' ')[0] : '';
+  };
+
+  const extractPincodeFromAddress = (address: string): string => {
+    const pincodeMatch = address.match(/\b\d{6}\b/);
+    return pincodeMatch ? pincodeMatch[0] : '';
   };
 
   return (
@@ -313,119 +326,6 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Address *
-                </label>
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  rows={3}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.address ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter complete address"
-                />
-                {errors.address && (
-                  <p className="mt-1 text-sm text-red-600 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.address}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange('city', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.city ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="City"
-                  />
-                  {errors.city && (
-                    <p className="mt-1 text-sm text-red-600">{errors.city}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    State *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.state}
-                    onChange={(e) => handleInputChange('state', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.state ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="State"
-                  />
-                  {errors.state && (
-                    <p className="mt-1 text-sm text-red-600">{errors.state}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pincode *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.pincode}
-                    onChange={(e) => handleInputChange('pincode', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.pincode ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="6-digit pincode"
-                    maxLength={6}
-                  />
-                  {errors.pincode && (
-                    <p className="mt-1 text-sm text-red-600">{errors.pincode}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Latitude (Optional)
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={formData.latitude}
-                    onChange={(e) => handleInputChange('latitude', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. 28.6139"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Longitude (Optional)
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={formData.longitude}
-                    onChange={(e) => handleInputChange('longitude', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. 77.2090"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Contact Details */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -473,154 +373,171 @@ const CreateClinicModal: React.FC<CreateClinicModalProps> = ({ onClose, onSucces
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Clinic Admin Phone *
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="tel"
-                    value={formData.admin_phone}
-                    onChange={(e) => handleInputChange('admin_phone', e.target.value)}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.admin_phone ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="+91 98765 43210"
-                  />
-                </div>
-                {errors.admin_phone && (
-                  <p className="mt-1 text-sm text-red-600 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.admin_phone}
-                  </p>
-                )}
-                <p className="mt-1 text-sm text-gray-500">
-                  Phone number of the person who will manage this clinic
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Total Beds (Optional)
-                </label>
-                <div className="relative">
-                  <Bed className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.total_beds}
-                    onChange={(e) => handleInputChange('total_beds', e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Number of beds available"
-                  />
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start">
+                  <User className="h-5 w-5 text-blue-600 mt-0.5 mr-3" />
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                      Default Clinic Administration
+                    </h4>
+                    <p className="text-sm text-blue-700">
+                      The organization owner will automatically become the admin of this clinic. 
+                      You can assign additional administrators later from the clinic management page.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Step 3: Additional Info */}
-          {currentStep === 3 && (
+          {/* Step 2: Location */}
+          {currentStep === 2 && (
             <div className="space-y-6">
-              {/* Facilities - Machine Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Facilities - Available Machines
+                <label className="block text-sm font-medium text-gray-700 mb-4">
+                  <MapPin className="inline h-4 w-4 mr-2" />
+                  Select Clinic Location *
                 </label>
-                
-                {/* Machine Categories */}
-                <div className="space-y-4">
-                  {Object.entries(machinesByType).map(([type, machines]) => (
-                    <div key={type} className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-900 mb-3">{type}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {machines.map((machine, index) => (
-                          <label key={index} className="flex items-start space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                            <input
-                              type="checkbox"
-                              checked={formData.facilities.includes(machine.name)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    facilities: [...prev.facilities, machine.name]
-                                  }));
-                                } else {
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    facilities: prev.facilities.filter(f => f !== machine.name)
-                                  }));
-                                }
-                              }}
-                              className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="text-sm text-gray-700">{machine.name}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Selected Facilities Summary */}
-                {formData.facilities.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-600 mb-2">Selected machines: {formData.facilities.length}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.facilities.map((facility, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-                        >
-                          {facility}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <LeafletMapPicker
+                  onLocationSelect={handleLocationSelect}
+                  initialLat={formData.latitude || 28.6139}
+                  initialLng={formData.longitude || 77.2090}
+                  height="450px"
+                />
+                {errors.location && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.location}
+                  </p>
                 )}
               </div>
 
-              {/* Working Hours */}
+              {selectedAddress && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-900 mb-2">Selected Address:</h4>
+                  <p className="text-sm text-blue-700">{selectedAddress}</p>
+                  <div className="mt-2 text-xs text-blue-600">
+                    Coordinates: {formData.latitude?.toFixed(6)}, {formData.longitude?.toFixed(6)}
+                  </div>
+                </div>
+              )}
+
+              {/* Optional Address Override */}
+              <div className="border-t border-gray-200 pt-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-4">Address Details (Optional - auto-filled from map)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                    <input
+                      type="text"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="City"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                    <input
+                      type="text"
+                      value={formData.state}
+                      onChange={(e) => handleInputChange('state', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="State"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
+                    <input
+                      type="text"
+                      value={formData.pincode}
+                      onChange={(e) => handleInputChange('pincode', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="6-digit pincode"
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Address</label>
+                    <textarea
+                      value={formData.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Complete address"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Beds (Optional)</label>
+                    <div className="relative">
+                      <Bed className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.total_beds}
+                        onChange={(e) => handleInputChange('total_beds', e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Number of beds"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Working Hours */}
+          {currentStep === 3 && (
+            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-4">
+                  <Clock className="inline h-4 w-4 mr-2" />
                   Working Hours
                 </label>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {Object.entries(formData.working_hours).map(([day, hours]) => (
-                    <div key={day} className="flex items-center space-x-4">
-                      <div className="w-20">
+                    <div key={day} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-24">
                         <label className="flex items-center">
                           <input
                             type="checkbox"
                             checked={hours.is_open}
                             onChange={(e) => updateWorkingHours(day, 'is_open', e.target.checked)}
-                            className="mr-2"
+                            className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
-                          <span className="text-sm font-medium capitalize">{day}</span>
+                          <span className="text-sm font-medium capitalize text-gray-700">{day}</span>
                         </label>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="time"
-                          value={hours.open}
-                          onChange={(e) => updateWorkingHours(day, 'open', e.target.value)}
-                          disabled={!hours.is_open}
-                          className="px-3 py-1 border border-border-color rounded text-sm focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio disabled:bg-gray-100 transition-all duration-200 bg-white"
-                        />
-                        <span className="text-gray-500">to</span>
-                        <input
-                          type="time"
-                          value={hours.close}
-                          onChange={(e) => updateWorkingHours(day, 'close', e.target.value)}
-                          disabled={!hours.is_open}
-                          className="px-3 py-1 border border-border-color rounded text-sm focus:outline-none focus:ring-2 focus:ring-healui-physio/20 focus:border-healui-physio disabled:bg-gray-100 transition-all duration-200 bg-white"
-                        />
+                      <div className="flex items-center space-x-2 flex-1">
+                        {hours.is_open ? (
+                          <>
+                            <input
+                              type="time"
+                              value={hours.open}
+                              onChange={(e) => updateWorkingHours(day, 'open', e.target.value)}
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                            />
+                            <span className="text-gray-500 text-sm font-medium">to</span>
+                            <input
+                              type="time"
+                              value={hours.close}
+                              onChange={(e) => updateWorkingHours(day, 'close', e.target.value)}
+                              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                            />
+                          </>
+                        ) : (
+                          <span className="text-sm text-gray-500 font-medium">Closed</span>
+                        )}
                       </div>
-                      {!hours.is_open && (
-                        <span className="text-sm text-gray-500">Closed</span>
-                      )}
                     </div>
                   ))}
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    💡 You can add facilities and equipment details later from the clinic management page.
+                  </p>
                 </div>
               </div>
             </div>

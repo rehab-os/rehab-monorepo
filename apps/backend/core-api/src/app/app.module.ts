@@ -4,8 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 
 // Configuration imports
-import { databaseConfig } from '@rehab/database';
-import firebaseConfig from '@rehab/database/src/lib/config/firebase.config';
+import { databaseConfig, firebaseConfig } from '@rehab/database';
 
 // Common library imports (interfaces, guards, interceptors)
 import {

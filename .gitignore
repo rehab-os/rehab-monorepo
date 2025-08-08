@@ -118,3 +118,13 @@ yarn-error.log
 # testing
 /coverage
 test-output
+
+# Firebase Admin SDK credentials
+**/healui-firebase-adminsdk.json
+*firebase-adminsdk*.json
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development

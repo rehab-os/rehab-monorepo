@@ -8,6 +8,10 @@ import AppointmentCard from '../../../components/molecule/AppointmentCard';
 import AppointmentCalendar from '../../../components/molecule/AppointmentCalendar';
 import RescheduleVisitModal from '../../../components/molecule/RescheduleVisitModal';
 import CancelVisitModal from '../../../components/molecule/CancelVisitModal';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Badge } from '../../../components/ui/badge';
 import { 
   Calendar,
   Clock,
@@ -29,7 +33,8 @@ import {
   Activity,
   CalendarX,
   Grid,
-  List
+  List,
+  Shield
 } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isToday, parseISO, addDays, subDays } from 'date-fns';
 
@@ -181,32 +186,32 @@ export default function AppointmentsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'SCHEDULED':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'IN_PROGRESS':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-50 text-green-700 border-green-200';
       case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-50 text-red-700 border-red-200';
       case 'NO_SHOW':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
   const getVisitTypeColor = (type: string) => {
     switch (type) {
       case 'INITIAL_CONSULTATION':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'FOLLOW_UP':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-healui-physio/10 text-healui-physio border-healui-physio/20';
       case 'REVIEW':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-50 text-green-700 border-green-200';
       case 'EMERGENCY':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-50 text-red-700 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -229,14 +234,16 @@ export default function AppointmentsPage() {
 
   if (!currentClinic) {
     return (
-      <div className="max-w-2xl mx-auto py-12">
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Clinic Selected</h2>
-          <p className="text-gray-600">
-            Please select a clinic from the header to view appointments.
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-16 w-16 text-gray-400 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">No Clinic Selected</h2>
+            <p className="text-gray-600 text-center">
+              Please select a clinic from the header to view appointments.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -248,225 +255,235 @@ export default function AppointmentsPage() {
   const noShowCount = visitsData.visits.filter(v => v.status === 'NO_SHOW').length;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Appointments</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
           <p className="text-gray-600 mt-1">
             {isAdmin ? 'Manage all clinic appointments' : 'View your appointments'}
           </p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
-          <CalendarCheck className="h-4 w-4 mr-2" />
+        <Button className="flex items-center gap-2">
+          <CalendarCheck className="h-4 w-4" />
           Schedule Appointment
-        </button>
+        </Button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total</p>
+                <p className="text-2xl font-bold text-gray-900">{visitsData.total}</p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <Calendar className="h-6 w-6 text-gray-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Scheduled</p>
+                <p className="text-2xl font-bold text-blue-600">{scheduledCount}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Clock className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-green-600">{completedCount}</p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Cancelled</p>
+                <p className="text-2xl font-bold text-red-600">{cancelledCount}</p>
+              </div>
+              <div className="p-3 bg-red-100 rounded-lg">
+                <XCircle className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">No Show</p>
+                <p className="text-2xl font-bold text-gray-600">{noShowCount}</p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <CalendarX className="h-6 w-6 text-gray-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Date Filter */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              {(['today', 'week', 'month', 'all', 'custom'] as FilterType[]).map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setFilterType(filter)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    filterType === filter
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {/* Custom Date Picker */}
-            {filterType === 'custom' && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleDateNavigation('prev')}
-                  className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <input
-                  type="date"
-                  value={customDate}
-                  onChange={(e) => {
-                    setCustomDate(e.target.value);
-                    setSelectedDate(parseISO(e.target.value));
-                  }}
-                  className="px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={() => handleDateNavigation('next')}
-                  className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Date Filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                {(['today', 'week', 'month', 'all', 'custom'] as FilterType[]).map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setFilterType(filter)}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      filterType === filter
+                        ? 'bg-white text-healui-physio shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
 
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Status</option>
-            <option value="SCHEDULED">Scheduled</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="CANCELLED">Cancelled</option>
-            <option value="NO_SHOW">No Show</option>
-          </select>
-
-          {/* Search */}
-          <div className="flex-1 flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search patient name or phone..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              {/* Custom Date Picker */}
+              {filterType === 'custom' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleDateNavigation('prev')}
+                    className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <input
+                    type="date"
+                    value={customDate}
+                    onChange={(e) => {
+                      setCustomDate(e.target.value);
+                      setSelectedDate(parseISO(e.target.value));
+                    }}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio focus:border-transparent"
+                  />
+                  <button
+                    onClick={() => handleDateNavigation('next')}
+                    className="p-1.5 text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
             </div>
-            <button
-              onClick={handleSearch}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-healui-physio focus:border-transparent"
             >
-              Search
-            </button>
-          </div>
+              <option value="all">All Status</option>
+              <option value="SCHEDULED">Scheduled</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="NO_SHOW">No Show</option>
+            </select>
 
-          {/* View Toggle */}
-          <div className="flex items-center space-x-2 border border-gray-300 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'table' 
-                  ? 'bg-blue-100 text-blue-600' 
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-              title="Table View"
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'grid' 
-                  ? 'bg-blue-100 text-blue-600' 
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-              title="Grid View"
-            >
-              <Grid className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('calendar')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'calendar' 
-                  ? 'bg-blue-100 text-blue-600' 
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-              title="Calendar View"
-            >
-              <Calendar className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+            {/* Search */}
+            <div className="flex-1 flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search patient name or phone..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10"
+                />
+              </div>
+              <Button onClick={handleSearch}>
+                Search
+              </Button>
+            </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total</p>
-              <p className="text-2xl font-semibold text-gray-900">{visitsData.total}</p>
-            </div>
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <Calendar className="h-5 w-5 text-gray-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Scheduled</p>
-              <p className="text-2xl font-semibold text-blue-600">{scheduledCount}</p>
-            </div>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Clock className="h-5 w-5 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-2xl font-semibold text-green-600">{completedCount}</p>
-            </div>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Cancelled</p>
-              <p className="text-2xl font-semibold text-red-600">{cancelledCount}</p>
-            </div>
-            <div className="p-2 bg-red-100 rounded-lg">
-              <XCircle className="h-5 w-5 text-red-600" />
+            {/* View Toggle */}
+            <div className="flex items-center space-x-2 border border-gray-300 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'table' 
+                    ? 'bg-healui-physio/10 text-healui-physio' 
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+                title="Table View"
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'grid' 
+                    ? 'bg-healui-physio/10 text-healui-physio' 
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+                title="Grid View"
+              >
+                <Grid className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`p-2 rounded-md transition-colors ${
+                  viewMode === 'calendar' 
+                    ? 'bg-healui-physio/10 text-healui-physio' 
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+                title="Calendar View"
+              >
+                <Calendar className="h-4 w-4" />
+              </button>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">No Show</p>
-              <p className="text-2xl font-semibold text-gray-600">{noShowCount}</p>
-            </div>
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <CalendarX className="h-5 w-5 text-gray-600" />
-            </div>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Appointments List */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-healui-physio"></div>
         </div>
       ) : visitsData.visits.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No appointments found</h3>
-          <p className="text-gray-600">
-            {filterType === 'all' ? 'No appointments scheduled yet.' : `No appointments for ${filterType === 'custom' ? 'selected date' : filterType}.`}
-          </p>
-        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Calendar className="h-16 w-16 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No appointments found</h3>
+            <p className="text-gray-600 text-center">
+              {filterType === 'all' ? 'No appointments scheduled yet.' : `No appointments for ${filterType === 'custom' ? 'selected date' : filterType}.`}
+            </p>
+          </CardContent>
+        </Card>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {visitsData.visits.map((visit) => (
             <AppointmentCard
               key={visit.id}
@@ -474,11 +491,9 @@ export default function AppointmentsPage() {
               isAdmin={isAdmin}
               onViewPatient={handleViewPatient}
               onStartVisit={(visitId) => {
-                // Handle start visit
                 console.log('Start visit:', visitId);
               }}
               onAddNote={(visitId) => {
-                // Handle add note
                 console.log('Add note:', visitId);
               }}
               onReschedule={(visitId) => {
@@ -501,7 +516,7 @@ export default function AppointmentsPage() {
           onViewPatient={handleViewPatient}
         />
       ) : viewMode === 'table' ? (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <Card>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -553,11 +568,11 @@ export default function AppointmentsPage() {
                         }}
                         title="Click to view patient details"
                       >
-                        <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+                        <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-medium">
                           {visit.patient?.full_name?.split(' ').map(n => n[0]).join('') || 'P'}
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-blue-600 hover:text-blue-800">
+                          <div className="text-sm font-medium text-healui-physio hover:text-healui-primary">
                             {visit.patient?.full_name || 'Unknown Patient'}
                           </div>
                           <div className="text-sm text-gray-500">
@@ -574,9 +589,9 @@ export default function AppointmentsPage() {
                       </td>
                     )}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getVisitTypeColor(visit.visit_type)}`}>
+                      <Badge variant="outline" className={`text-xs ${getVisitTypeColor(visit.visit_type)}`}>
                         {formatVisitType(visit.visit_type)}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 max-w-xs truncate">
@@ -584,9 +599,9 @@ export default function AppointmentsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(visit.status)}`}>
+                      <Badge variant="outline" className={`text-xs ${getStatusColor(visit.status)}`}>
                         {visit.status.replace('_', ' ')}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center space-x-2">
@@ -631,10 +646,10 @@ export default function AppointmentsPage() {
                           </button>
                         )}
                         {visit.note && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <Badge variant="secondary" className="text-xs bg-green-50 text-green-700">
                             <FileText className="h-3 w-3 mr-1" />
                             Note Added
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     </td>
@@ -643,58 +658,29 @@ export default function AppointmentsPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       ) : null}
 
       {/* Pagination */}
       {visitsData.total > limit && (
-        <div className={`${viewMode === 'table' ? '' : 'bg-white rounded-lg border border-gray-200 mt-6'} px-4 py-3 flex items-center justify-between ${viewMode === 'table' ? 'border-t border-gray-200 bg-gray-50' : ''} sm:px-6`}>
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={page >= Math.ceil(visitsData.total / limit)}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  Next
-                </button>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
-                    <span className="font-medium">{Math.min(page * limit, visitsData.total)}</span> of{' '}
-                    <span className="font-medium">{visitsData.total}</span> results
-                  </p>
-                </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
-                      disabled={page === 1}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                      {page}
-                    </span>
-                    <button
-                      onClick={() => setPage(p => p + 1)}
-                      disabled={page >= Math.ceil(visitsData.total / limit)}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </nav>
-                </div>
-              </div>
+        <div className="flex items-center justify-center space-x-2 mt-6">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {page} of {Math.ceil(visitsData.total / limit)}
+          </span>
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page >= Math.ceil(visitsData.total / limit)}
+            className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       )}
 
